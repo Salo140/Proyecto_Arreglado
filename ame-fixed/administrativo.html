@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administrativo — Âme</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-role="administrativo">
+
+  <header class="navbar">
+    <h1 class="logo">Âme</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="login.html">Cerrar sesión</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="dashboard">
+    <div class="dashboard-hero">
+      <h2>Área Administrativa 🗂️</h2>
+      <p>Gestiona usuarios, citas y seguimiento de la plataforma desde un solo lugar.</p>
+    </div>
+
+    <div class="dashboard-grid">
+      <article class="info-card">
+        <h3>👥 Gestión de usuarios</h3>
+        <p>Revisa perfiles de clientes y psicólogos, y controla el acceso a los servicios.</p>
+      </article>
+      <article class="info-card">
+        <h3>📅 Agenda y citas</h3>
+        <p>Supervisa las sesiones programadas, confirma asistencias y actualiza horarios.</p>
+      </article>
+      <article class="info-card">
+        <h3>📊 Reportes</h3>
+        <p>Estadísticas de uso, recursos más consultados y actividad de la comunidad.</p>
+      </article>
+      <article class="info-card">
+        <h3>🔧 Soporte interno</h3>
+        <p>Controla solicitudes y coordina al equipo de psicólogos y administración.</p>
+      </article>
+    </div>
+
+    <section class="citas-panel">
+      <h3>Citas programadas</h3>
+      <p id="citasMessage">Las citas se cargan desde la API local. Ejecuta <code>npm run dev</code> para verlas.</p>
+      <ul id="citasList" class="citas-list"></ul>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Âme — Todos los derechos reservados</p>
+  </footer>
+
+  <script src="dashboard.js" defer></script>
+</body>
+</html>

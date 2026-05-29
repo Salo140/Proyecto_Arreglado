@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar sesión — Âme</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="login.js" defer></script>
+</head>
+<body>
+
+  <header class="navbar">
+    <h1 class="logo">Âme</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Inicio</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="login-section">
+    <h2>Bienvenido de nuevo</h2>
+    <p>Elige tu perfil para acceder a la plataforma.</p>
+
+    <div class="role-tabs" role="tablist">
+      <button type="button" class="role-button" data-role="cliente">Cliente</button>
+      <button type="button" class="role-button" data-role="administrativo">Administrativo</button>
+      <button type="button" class="role-button" data-role="psicologos">Psicólogos</button>
+    </div>
+
+    <form id="loginForm" class="login-form" novalidate>
+      <input type="hidden" id="selectedRole" name="role" value="cliente">
+
+      <label for="username">Correo electrónico</label>
+      <input
+        type="text"
+        id="username"
+        name="username"
+        placeholder="ejemplo@correo.com"
+        autocomplete="username"
+        required
+      >
+
+      <label for="password">Contraseña</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        placeholder="••••••••"
+        autocomplete="current-password"
+        required
+      >
+
+      <p id="roleInfo" class="inline-note"></p>
+      <div id="demoCredentials" class="demo-box"></div>
+
+      <div id="loginMessage" class="alert hidden"></div>
+
+      <button type="submit" class="btn">Ingresar</button>
+    </form>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Âme — Plataforma de bienestar emocional</p>
+  </footer>
+
+</body>
+</html>

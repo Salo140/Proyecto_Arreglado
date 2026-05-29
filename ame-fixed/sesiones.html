@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sesiones con Psicólogos - Âme</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ── Variables de color ── */
+    :root {
+      --verde: #2d6a4f;
+      --verde-medio: #40916c;
+      --verde-claro: #52b788;
+      --verde-suave: #d8f3dc;
+      --gris: #555;
+      --gris-claro: #f5f5f5;
+    }
+ 
+    /* ── Hero ── */
+    .sesiones-hero {
+      background: linear-gradient(135deg, var(--verde) 0%, var(--verde-medio) 50%, var(--verde-claro) 100%);
+      color: white;
+      padding: 60px 40px;
+      text-align: center;
+      border-radius: 16px;
+      margin-bottom: 40px;
+    }
+    .sesiones-hero h2 { font-size: 2.2rem; margin-bottom: 12px; }
+    .sesiones-hero p  { font-size: 1.1rem; opacity: 0.9; max-width: 600px; margin: 0 auto; }
+ 
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 32px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+    .tab-btn {
+      background: none; border: none;
+      padding: 12px 24px; font-size: 1rem;
+      cursor: pointer; color: #666;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.3s ease; font-weight: 500;
+    }
+    .tab-btn.active  { color: var(--verde); border-bottom-color: var(--verde); }
+    .tab-btn:hover   { color: var(--verde-medio); }
+    .tab-content     { display: none; }
+    .tab-content.active { display: block; }
+ 
+    /* ── Planes ── */
+    .planes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 28px;
+      margin-bottom: 20px;
+    }
+    .plan-card {
+      background: white;
+      border-radius: 20px;
+      padding: 36px 28px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.09);
+      border: 2px solid transparent;
+      position: relative;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      text-align: center;
+    }
+    .plan-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.13);
+    }
+    .plan-card.destacado {
+      border-color: var(--verde-claro);
+    }
+    .badge-popular {
+      position: absolute;
+      top: -14px; left: 50%; transform: translateX(-50%);
+      background: var(--verde-claro);
+      color: white; font-size: 0.8rem; font-weight: 700;
+      padding: 4px 18px; border-radius: 20px;
+    }
+    .plan-icono   { font-size: 2.5rem; margin-bottom: 12px; }
+    .plan-nombre  { font-size: 1.3rem; font-weight: 700; color: var(--verde); margin-bottom: 6px; }
+    .plan-precio  { font-size: 2rem; font-weight: 800; color: #222; margin-bottom: 4px; }
+    .plan-precio span { font-size: 1rem; font-weight: 400; color: #888; }
+    .plan-desc    { color: var(--gris); font-size: 0.92rem; margin-bottom: 20px; line-height: 1.5; }
+    .plan-features { list-style: none; padding: 0; margin-bottom: 24px; text-align: left; }
+    .plan-features li {
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 0.92rem; color: #444;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .plan-features li::before { content: "✓"; color: var(--verde-claro); font-weight: 700; }
+    .btn-plan {
+      width: 100%;
+      padding: 13px;
+      border: none; border-radius: 10px;
+      font-size: 1rem; font-weight: 600; cursor: pointer;
+      background: var(--verde-suave); color: var(--verde);
+      transition: background 0.2s ease;
+    }
+    .btn-plan:hover   { background: var(--verde-claro); color: white; }
+    .plan-card.destacado .btn-plan {
+      background: var(--verde); color: white;
+    }
+    .plan-card.destacado .btn-plan:hover { background: var(--verde-medio); }
+ 
+    /* ── Psicólogos ── */
+    .psicologos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+    }
+    .psicologo-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      transition: transform 0.2s ease;
+    }
+    .psicologo-card:hover { transform: translateY(-4px); }
+    .psicologo-header {
+      display: flex; gap: 16px; align-items: center; margin-bottom: 16px;
+    }
+    .avatar {
+      width: 60px; height: 60px; border-radius: 50%;
+      background: var(--verde-suave);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem; flex-shrink: 0;
+    }
+    .psicologo-info h3 { color: var(--verde); font-size: 1.05rem; margin-bottom: 4px; }
+    .psicologo-info p  { color: #888; font-size: 0.85rem; }
+    .especialidades {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px;
+    }
+    .tag-esp {
+      background: var(--verde-suave); color: var(--verde);
+      font-size: 0.78rem; padding: 4px 10px;
+      border-radius: 20px; font-weight: 600;
+    }
+    .disponibilidad {
+      font-size: 0.88rem; color: #666; margin-bottom: 16px;
+    }
+    .disponibilidad strong { color: var(--verde); }
+    .btn-agendar {
+      width: 100%; padding: 11px;
+      background: var(--verde); color: white;
+      border: none; border-radius: 10px;
+      font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; transition: background 0.2s ease;
+    }
+    .btn-agendar:hover { background: var(--verde-medio); }
+ 
+    /* ── Modal de agendamiento ── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 20px;
+      padding: 36px;
+      width: 100%; max-width: 480px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      position: relative;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    .modal-close {
+      position: absolute; top: 16px; right: 20px;
+      background: none; border: none;
+      font-size: 1.5rem; cursor: pointer; color: #999;
+    }
+    .modal h3  { color: var(--verde); font-size: 1.3rem; margin-bottom: 6px; }
+    .modal p   { color: #888; font-size: 0.9rem; margin-bottom: 24px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block; font-size: 0.9rem;
+      font-weight: 600; color: #444; margin-bottom: 6px;
+    }
+    .form-group select,
+    .form-group input {
+      width: 100%; padding: 11px 14px;
+      border: 1.5px solid #ddd; border-radius: 10px;
+      font-size: 0.95rem; color: #333;
+      transition: border-color 0.2s ease;
+      box-sizing: border-box;
+    }
+    .form-group select:focus,
+    .form-group input:focus {
+      outline: none; border-color: var(--verde-claro);
+    }
+    .btn-confirmar {
+      width: 100%; padding: 14px;
+      background: var(--verde); color: white;
+      border: none; border-radius: 10px;
+      font-size: 1rem; font-weight: 700;
+      cursor: pointer; transition: background 0.2s ease;
+      margin-top: 8px;
+    }
+    .btn-confirmar:hover { background: var(--verde-medio); }
+ 
+    /* ── Confirmación ── */
+    .confirmacion {
+      display: none;
+      text-align: center; padding: 20px 0;
+    }
+    .confirmacion.show { display: block; }
+    .confirmacion .check { font-size: 4rem; margin-bottom: 16px; }
+    .confirmacion h3 { color: var(--verde); font-size: 1.4rem; margin-bottom: 10px; }
+    .confirmacion p  { color: #666; font-size: 0.95rem; line-height: 1.6; }
+ 
+    /* ── Botón volver ── */
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--verde); text-decoration: none;
+      font-weight: 600; margin-bottom: 28px;
+      font-size: 0.95rem; transition: gap 0.2s ease;
+    }
+    .back-btn:hover { gap: 12px; }
+ 
+    .nota-planes {
+      text-align: center; color: #888;
+      font-size: 0.88rem; margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <h1 class="logo">Âme</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="login.html">Cerrar sesión</a></li>
+      </ul>
+    </nav>
+  </header>
+ 
+  <section class="dashboard">
+    <a href="cliente.html" class="back-btn">← Volver al inicio</a>
+ 
+    <div class="sesiones-hero">
+      <h2>🧑‍⚕️ Sesiones con Psicólogos</h2>
+      <p>Elige el plan que mejor se adapte a ti y agenda tu cita con uno de nuestros psicólogos certificados.</p>
+    </div>
+ 
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('planes', this)">💳 Planes</button>
+      <button class="tab-btn"        onclick="showTab('psicologos', this)">👨‍⚕️ Psicólogos y citas</button>
+    </div>
+ 
+    <!-- ══ TAB: PLANES ══ -->
+    <div id="planes" class="tab-content active">
+      <div class="planes-grid">
+ 
+        <!-- Plan Básico -->
+        <div class="plan-card">
+          <div class="plan-icono">🌱</div>
+          <div class="plan-nombre">Plan Básico</div>
+          <div class="plan-precio">$80.000 <span>/ mes</span></div>
+          <div class="plan-desc">Ideal para quienes están comenzando su proceso y quieren explorar el acompañamiento psicológico.</div>
+          <ul class="plan-features">
+            <li>1 sesión individual por mes</li>
+            <li>Duración: 50 minutos por sesión</li>
+            <li>Modalidad virtual</li>
+            <li>Acceso a recursos digitales</li>
+            <li>Seguimiento por mensaje</li>
+          </ul>
+          <button class="btn-plan" onclick="showTab('psicologos', document.querySelectorAll('.tab-btn')[1])">
+            Elegir este plan
+          </button>
+        </div>
+ 
+        <!-- Plan Estándar -->
+        <div class="plan-card destacado">
+          <div class="badge-popular">⭐ Más popular</div>
+          <div class="plan-icono">🌿</div>
+          <div class="plan-nombre">Plan Estándar</div>
+          <div class="plan-precio">$200.000 <span>/ mes</span></div>
+          <div class="plan-desc">Para quienes buscan un proceso continuo con acompañamiento semanal y herramientas de apoyo.</div>
+          <ul class="plan-features">
+            <li>4 sesiones individuales por mes</li>
+            <li>Duración: 50 minutos por sesión</li>
+            <li>Modalidad virtual o presencial</li>
+            <li>Acceso a recursos digitales</li>
+            <li>Seguimiento semanal por mensaje</li>
+            <li>Informe mensual de avance</li>
+          </ul>
+          <button class="btn-plan" onclick="showTab('psicologos', document.querySelectorAll('.tab-btn')[1])">
+            Elegir este plan
+          </button>
+        </div>
+ 
+        <!-- Plan Premium -->
+        <div class="plan-card">
+          <div class="plan-icono">🌳</div>
+          <div class="plan-nombre">Plan Premium</div>
+          <div class="plan-precio">$380.000 <span>/ mes</span></div>
+          <div class="plan-desc">Acompañamiento intensivo para quienes requieren mayor frecuencia y soporte especializado.</div>
+          <ul class="plan-features">
+            <li>8 sesiones individuales por mes</li>
+            <li>Duración: 50 minutos por sesión</li>
+            <li>Modalidad virtual y presencial</li>
+            <li>Acceso prioritario a psicólogos</li>
+            <li>Seguimiento diario por mensaje</li>
+            <li>Informe quincenal de avance</li>
+            <li>Sesión de pareja o familiar incluida</li>
+          </ul>
+          <button class="btn-plan" onclick="showTab('psicologos', document.querySelectorAll('.tab-btn')[1])">
+            Elegir este plan
+          </button>
+        </div>
+ 
+      </div>
+      <p class="nota-planes">* Los precios incluyen IVA. Puedes cancelar o cambiar tu plan en cualquier momento.</p>
+    </div>
+ 
+    <!-- ══ TAB: PSICÓLOGOS ══ -->
+    <div id="psicologos" class="tab-content">
+      <div class="psicologos-grid">
+ 
+        <div class="psicologo-card">
+          <div class="psicologo-header">
+            <div class="avatar">👩</div>
+            <div class="psicologo-info">
+              <h3>Dra. Laura Martínez</h3>
+              <p>Psicóloga clínica · 8 años de experiencia</p>
+            </div>
+          </div>
+          <div class="especialidades">
+            <span class="tag-esp">Ansiedad</span>
+            <span class="tag-esp">Depresión</span>
+            <span class="tag-esp">Autoestima</span>
+          </div>
+          <div class="disponibilidad">
+            <strong>Disponible:</strong> Lunes, Miércoles y Viernes<br>
+            Horario: 8:00 am – 6:00 pm
+          </div>
+          <button class="btn-agendar" onclick="abrirModal('Dra. Laura Martínez')">Agendar cita</button>
+        </div>
+ 
+        <div class="psicologo-card">
+          <div class="psicologo-header">
+            <div class="avatar">👨</div>
+            <div class="psicologo-info">
+              <h3>Dr. Andrés Gómez</h3>
+              <p>Psicólogo cognitivo-conductual · 6 años de experiencia</p>
+            </div>
+          </div>
+          <div class="especialidades">
+            <span class="tag-esp">Estrés</span>
+            <span class="tag-esp">Fobias</span>
+            <span class="tag-esp">TOC</span>
+          </div>
+          <div class="disponibilidad">
+            <strong>Disponible:</strong> Martes, Jueves y Sábados<br>
+            Horario: 9:00 am – 5:00 pm
+          </div>
+          <button class="btn-agendar" onclick="abrirModal('Dr. Andrés Gómez')">Agendar cita</button>
+        </div>
+ 
+        <div class="psicologo-card">
+          <div class="psicologo-header">
+            <div class="avatar">👩</div>
+            <div class="psicologo-info">
+              <h3>Dra. Camila Torres</h3>
+              <p>Psicóloga infantil y familiar · 10 años de experiencia</p>
+            </div>
+          </div>
+          <div class="especialidades">
+            <span class="tag-esp">Familia</span>
+            <span class="tag-esp">Duelo</span>
+            <span class="tag-esp">Crianza</span>
+          </div>
+          <div class="disponibilidad">
+            <strong>Disponible:</strong> Lunes a Jueves<br>
+            Horario: 10:00 am – 7:00 pm
+          </div>
+          <button class="btn-agendar" onclick="abrirModal('Dra. Camila Torres')">Agendar cita</button>
+        </div>
+ 
+        <div class="psicologo-card">
+          <div class="psicologo-header">
+            <div class="avatar">👨</div>
+            <div class="psicologo-info">
+              <h3>Dr. Santiago Ríos</h3>
+              <p>Psicólogo organizacional · 5 años de experiencia</p>
+            </div>
+          </div>
+          <div class="especialidades">
+            <span class="tag-esp">Burnout</span>
+            <span class="tag-esp">Liderazgo</span>
+            <span class="tag-esp">Trabajo</span>
+          </div>
+          <div class="disponibilidad">
+            <strong>Disponible:</strong> Miércoles, Viernes y Sábados<br>
+            Horario: 7:00 am – 4:00 pm
+          </div>
+          <button class="btn-agendar" onclick="abrirModal('Dr. Santiago Ríos')">Agendar cita</button>
+        </div>
+ 
+        <div class="psicologo-card">
+          <div class="psicologo-header">
+            <div class="avatar">👩</div>
+            <div class="psicologo-info">
+              <h3>Dra. Valentina Cruz</h3>
+              <p>Psicóloga social · 7 años de experiencia</p>
+            </div>
+          </div>
+          <div class="especialidades">
+            <span class="tag-esp">Trauma</span>
+            <span class="tag-esp">Relaciones</span>
+            <span class="tag-esp">Identidad</span>
+          </div>
+          <div class="disponibilidad">
+            <strong>Disponible:</strong> Lunes, Martes y Jueves<br>
+            Horario: 8:00 am – 5:00 pm
+          </div>
+          <button class="btn-agendar" onclick="abrirModal('Dra. Valentina Cruz')">Agendar cita</button>
+        </div>
+ 
+        <div class="psicologo-card">
+          <div class="psicologo-header">
+            <div class="avatar">👨</div>
+            <div class="psicologo-info">
+              <h3>Dr. Felipe Moreno</h3>
+              <p>Neuropsicólogo · 9 años de experiencia</p>
+            </div>
+          </div>
+          <div class="especialidades">
+            <span class="tag-esp">TDAH</span>
+            <span class="tag-esp">Memoria</span>
+            <span class="tag-esp">Aprendizaje</span>
+          </div>
+          <div class="disponibilidad">
+            <strong>Disponible:</strong> Martes, Miércoles y Viernes<br>
+            Horario: 9:00 am – 6:00 pm
+          </div>
+          <button class="btn-agendar" onclick="abrirModal('Dr. Felipe Moreno')">Agendar cita</button>
+        </div>
+ 
+      </div>
+    </div>
+ 
+  </section>
+ 
+  <footer>
+    <p>&copy; 2026 Âme - Todos los derechos reservados</p>
+  </footer>
+ 
+  <!-- ══ MODAL ══ -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+ 
+      <!-- Formulario -->
+      <div id="formularioCita">
+        <h3>📅 Agendar cita</h3>
+        <p id="modalSubtitulo">Con <strong id="nombrePsicologo"></strong></p>
+ 
+        <div class="form-group">
+          <label>Fecha de la cita</label>
+          <input type="date" id="fechaCita">
+        </div>
+ 
+        <div class="form-group">
+          <label>Hora disponible</label>
+          <select id="horaCita">
+            <option value="">-- Selecciona una hora --</option>
+            <option>08:00 am</option>
+            <option>09:00 am</option>
+            <option>10:00 am</option>
+            <option>11:00 am</option>
+            <option>02:00 pm</option>
+            <option>03:00 pm</option>
+            <option>04:00 pm</option>
+            <option>05:00 pm</option>
+          </select>
+        </div>
+ 
+        <div class="form-group">
+          <label>Modalidad</label>
+          <select id="modalidadCita">
+            <option value="">-- Selecciona modalidad --</option>
+            <option>Virtual (videollamada)</option>
+            <option>Presencial</option>
+          </select>
+        </div>
+ 
+        <div class="form-group">
+          <label>Motivo de consulta (opcional)</label>
+          <input type="text" id="motivoCita" placeholder="Ej: Manejo de ansiedad, estrés laboral...">
+        </div>
+ 
+        <button class="btn-confirmar" onclick="confirmarCita()">Confirmar cita</button>
+      </div>
+ 
+      <!-- Confirmación -->
+      <div class="confirmacion" id="confirmacionCita">
+        <div class="check">✅</div>
+        <h3>¡Cita agendada!</h3>
+        <p id="resumenCita"></p>
+        <br>
+        <button class="btn-confirmar" onclick="cerrarModal()">Cerrar</button>
+      </div>
+ 
+    </div>
+  </div>
+ 
+  <script>
+    // ── Tabs ──
+    function showTab(tabId, btnElement) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      if (btnElement) btnElement.classList.add('active');
+    }
+ 
+    // ── Modal: abrir ──
+    function abrirModal(nombrePsicologo) {
+      document.getElementById('nombrePsicologo').textContent = nombrePsicologo;
+      document.getElementById('formularioCita').style.display = 'block';
+      document.getElementById('confirmacionCita').classList.remove('show');
+      // Fecha mínima: hoy
+      document.getElementById('fechaCita').min = new Date().toISOString().split('T')[0];
+      document.getElementById('modalOverlay').classList.add('open');
+    }
+ 
+    // ── Modal: cerrar ──
+    function cerrarModal() {
+      document.getElementById('modalOverlay').classList.remove('open');
+      // Limpiar campos
+      document.getElementById('fechaCita').value = '';
+      document.getElementById('horaCita').value = '';
+      document.getElementById('modalidadCita').value = '';
+      document.getElementById('motivoCita').value = '';
+    }
+ 
+    // ── Cerrar modal al hacer clic fuera ──
+    document.getElementById('modalOverlay').addEventListener('click', function(e) {
+      if (e.target === this) cerrarModal();
+    });
+ 
+    // ── Confirmar cita ──
+    function confirmarCita() {
+      const psicologo  = document.getElementById('nombrePsicologo').textContent;
+      const fecha      = document.getElementById('fechaCita').value;
+      const hora       = document.getElementById('horaCita').value;
+      const modalidad  = document.getElementById('modalidadCita').value;
+ 
+      // Validación básica
+      if (!fecha || !hora || !modalidad) {
+        alert('Por favor completa la fecha, hora y modalidad.');
+        return;
+      }
+ 
+      // Formatear fecha en español
+      const fechaFormateada = new Date(fecha + 'T12:00:00').toLocaleDateString('es-CO', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+ 
+      // Mostrar confirmación
+      document.getElementById('resumenCita').innerHTML =
+        `Tu cita con <strong>${psicologo}</strong> ha sido agendada para el <strong>${fechaFormateada}</strong> a las <strong>${hora}</strong>.<br><br>Modalidad: <strong>${modalidad}</strong>.<br><br>Recibirás un recordatorio antes de tu sesión.`;
+ 
+      document.getElementById('formularioCita').style.display = 'none';
+      document.getElementById('confirmacionCita').classList.add('show');
+    }
+  </script>
+ 
+  <script src="dashboard.js" defer></script>
+</body>
+</html>

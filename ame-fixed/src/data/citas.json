@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "cliente": "Ana López",
+    "psicologo": "Dr. Rivera",
+    "fecha": "2026-06-01",
+    "hora": "09:30",
+    "motivo": "Manejo de ansiedad",
+    "disponible": true
+  },
+  {
+    "id": 2,
+    "cliente": "Carlos Mendoza",
+    "psicologo": "Dra. Jiménez",
+    "fecha": "2026-06-03",
+    "hora": "14:00",
+    "motivo": "Terapia de pareja",
+    "disponible": true
+  },
+  {
+    "id": 3,
+    "cliente": "María Torres",
+    "psicologo": "Dr. Rivera",
+    "fecha": "2026-06-07",
+    "hora": "11:00",
+    "motivo": "Estrés laboral",
+    "disponible": false
+  }
+]

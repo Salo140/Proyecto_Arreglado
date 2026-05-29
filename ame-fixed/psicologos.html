@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Psicólogos — Âme</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-role="psicologos" data-psicologo="Dr. Rivera">
+
+  <header class="navbar">
+    <h1 class="logo">Âme</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="login.html">Cerrar sesión</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="dashboard">
+    <div class="dashboard-hero">
+      <h2>Bienvenido, Dr. Rivera 🩺</h2>
+      <p>Accede a tus sesiones, pacientes y herramientas para un acompañamiento profesional.</p>
+    </div>
+
+    <div class="dashboard-grid">
+      <article class="info-card">
+        <h3>🗓️ Agenda clínica</h3>
+        <p>Revisa tus próximas consultas y prepara notas de seguimiento.</p>
+      </article>
+      <article class="info-card">
+        <h3>🧑‍🤝‍🧑 Pacientes activos</h3>
+        <p>Gestiona tus pacientes y consulta su situación de bienestar actual.</p>
+      </article>
+      <article class="info-card">
+        <h3>📝 Notas de sesión</h3>
+        <p>Registra observaciones, objetivos y planes de mejora para cada paciente.</p>
+      </article>
+      <article class="info-card">
+        <h3>💬 Comunicación</h3>
+        <p>Conecta con el equipo administrativo y coordina el soporte a los clientes.</p>
+      </article>
+    </div>
+
+    <section class="citas-panel">
+      <h3>Citas asignadas</h3>
+      <p id="citasMessage">Las citas se cargan desde la API local. Ejecuta <code>npm run dev</code> para verlas.</p>
+      <ul id="citasList" class="citas-list"></ul>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Âme — Todos los derechos reservados</p>
+  </footer>
+
+  <script src="dashboard.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recursos Personales - Âme</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .recursos-hero {
+      background: linear-gradient(135deg, #2d6a4f 0%, #40916c 50%, #52b788 100%);
+      color: white;
+      padding: 60px 40px;
+      text-align: center;
+      border-radius: 16px;
+      margin-bottom: 40px;
+    }
+
+    .recursos-hero h2 {
+      font-size: 2.2rem;
+      margin-bottom: 12px;
+    }
+
+    .recursos-hero p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 32px;
+      border-bottom: 2px solid #e0e0e0;
+      padding-bottom: 0;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 12px 24px;
+      font-size: 1rem;
+      cursor: pointer;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+
+    .tab-btn.active {
+      color: #2d6a4f;
+      border-bottom-color: #2d6a4f;
+    }
+
+    .tab-btn:hover {
+      color: #40916c;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .resource-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    .resource-card {
+      background: white;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      border-left: 4px solid #52b788;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .resource-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
+    .resource-card .icon {
+      font-size: 2rem;
+      margin-bottom: 14px;
+    }
+
+    .resource-card h3 {
+      color: #2d6a4f;
+      font-size: 1.15rem;
+      margin-bottom: 10px;
+    }
+
+    .resource-card p {
+      color: #555;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 14px;
+    }
+
+    .resource-card .meta {
+      display: flex;
+      gap: 16px;
+      font-size: 0.85rem;
+      color: #888;
+    }
+
+    .resource-card .meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .resource-card .nivel {
+      display: inline-block;
+      background: #d8f3dc;
+      color: #2d6a4f;
+      font-size: 0.8rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .steps-list {
+      list-style: none;
+      padding: 0;
+      counter-reset: steps;
+    }
+
+    .steps-list li {
+      counter-increment: steps;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 14px;
+      padding: 14px;
+      background: #f0faf4;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      color: #444;
+      line-height: 1.5;
+    }
+
+    .steps-list li::before {
+      content: counter(steps);
+      background: #2d6a4f;
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .articulo-card {
+      background: white;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      transition: transform 0.2s ease;
+    }
+
+    .articulo-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .articulo-card .emoji-cover {
+      font-size: 2.5rem;
+      background: #d8f3dc;
+      width: 70px;
+      height: 70px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .articulo-card .content h3 {
+      color: #2d6a4f;
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+
+    .articulo-card .content p {
+      color: #666;
+      font-size: 0.92rem;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+
+    .articulo-card .tag {
+      background: #f0faf4;
+      color: #40916c;
+      font-size: 0.8rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    .articulos-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #2d6a4f;
+      text-decoration: none;
+      font-weight: 600;
+      margin-bottom: 28px;
+      font-size: 0.95rem;
+      transition: gap 0.2s ease;
+    }
+
+    .back-btn:hover {
+      gap: 12px;
+    }
+
+    .respiracion-card {
+      border-left-color: #74c69d;
+    }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <h1 class="logo">Âme</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="login.html">Cerrar sesión</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="dashboard">
+    <a href="cliente.html" class="back-btn">← Volver al inicio</a>
+
+    <div class="recursos-hero">
+      <h2>🌿 Recursos Personales</h2>
+      <p>Meditaciones guiadas, ejercicios de respiración y artículos para acompañar tu bienestar emocional día a día.</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('meditaciones')">🧘 Meditaciones</button>
+      <button class="tab-btn" onclick="showTab('respiracion')">💨 Respiración</button>
+      <button class="tab-btn" onclick="showTab('articulos')">📚 Artículos</button>
+    </div>
+
+    <!-- Tab: Meditaciones -->
+    <div id="meditaciones" class="tab-content active">
+      <div class="resource-grid">
+
+        <div class="resource-card">
+          <div class="icon">🌅</div>
+          <span class="nivel">Principiante</span>
+          <h3>Meditación de atención plena</h3>
+          <p>Aprende a observar tus pensamientos sin juzgarlos. Esta práctica te invita a llevar la atención al momento presente usando la respiración como ancla.</p>
+          <div class="meta">
+            <span>⏱ 10 minutos</span>
+            <span>🎯 Enfoque mental</span>
+          </div>
+          <br>
+          <p><strong>Cómo practicarla:</strong></p>
+          <ol class="steps-list">
+            <li>Siéntate con la espalda recta en un lugar tranquilo.</li>
+            <li>Cierra los ojos y lleva tu atención a la respiración natural.</li>
+            <li>Cuando surja un pensamiento, obsérvalo sin seguirlo y vuelve suavemente a la respiración.</li>
+            <li>Repite durante 10 minutos.</li>
+          </ol>
+        </div>
+
+        <div class="resource-card">
+          <div class="icon">🌙</div>
+          <span class="nivel">Principiante</span>
+          <h3>Relajación muscular progresiva</h3>
+          <p>Técnica que consiste en tensar y soltar grupos musculares de forma ordenada para liberar la tensión acumulada en el cuerpo y calmar la mente.</p>
+          <div class="meta">
+            <span>⏱ 15 minutos</span>
+            <span>😴 Sueño y descanso</span>
+          </div>
+          <br>
+          <p><strong>Cómo practicarla:</strong></p>
+          <ol class="steps-list">
+            <li>Acuéstate boca arriba en un lugar cómodo.</li>
+            <li>Comenzando por los pies, tensa cada grupo muscular durante 5 segundos.</li>
+            <li>Suelta y siente la relajación durante 10 segundos.</li>
+            <li>Sube progresivamente hasta llegar al rostro.</li>
+          </ol>
+        </div>
+
+        <div class="resource-card">
+          <div class="icon">🌊</div>
+          <span class="nivel">Intermedio</span>
+          <h3>Escaneo corporal (Body Scan)</h3>
+          <p>Practica recorriendo mentalmente cada parte del cuerpo para reconocer sensaciones sin reaccionar a ellas. Ideal para reducir el estrés y mejorar la conciencia corporal.</p>
+          <div class="meta">
+            <span>⏱ 20 minutos</span>
+            <span>🔍 Consciencia corporal</span>
+          </div>
+          <br>
+          <p><strong>Cómo practicarla:</strong></p>
+          <ol class="steps-list">
+            <li>Acuéstate cómodamente y cierra los ojos.</li>
+            <li>Lleva la atención a la coronilla de la cabeza.</li>
+            <li>Desciende lentamente por cada zona: cuello, hombros, pecho, abdomen, piernas y pies.</li>
+            <li>Observa sensaciones sin intentar cambiarlas.</li>
+          </ol>
+        </div>
+
+        <div class="resource-card">
+          <div class="icon">❤️</div>
+          <span class="nivel">Intermedio</span>
+          <h3>Meditación de amor y compasión</h3>
+          <p>Conocida como Metta, esta práctica cultiva sentimientos de amor, bondad y compasión hacia uno mismo y hacia los demás, mejorando el bienestar emocional.</p>
+          <div class="meta">
+            <span>⏱ 12 minutos</span>
+            <span>🤝 Bienestar emocional</span>
+          </div>
+          <br>
+          <p><strong>Cómo practicarla:</strong></p>
+          <ol class="steps-list">
+            <li>Siéntate cómodamente y cierra los ojos.</li>
+            <li>Visualízate a ti mismo y repite: "Que sea feliz, que esté en paz, que esté libre de sufrimiento".</li>
+            <li>Extiende ese deseo hacia personas queridas, conocidos y finalmente hacia todos los seres.</li>
+            <li>Finaliza con tres respiraciones profundas.</li>
+          </ol>
+        </div>
+
+        <div class="resource-card">
+          <div class="icon">🌿</div>
+          <span class="nivel">Avanzado</span>
+          <h3>Meditación de visualización guiada</h3>
+          <p>Usa la imaginación para transportarte a un lugar seguro y tranquilo. Esta técnica es especialmente útil para manejar la ansiedad y el estrés situacional.</p>
+          <div class="meta">
+            <span>⏱ 15 minutos</span>
+            <span>🧠 Manejo de ansiedad</span>
+          </div>
+          <br>
+          <p><strong>Cómo practicarla:</strong></p>
+          <ol class="steps-list">
+            <li>Cierra los ojos y realiza tres respiraciones profundas.</li>
+            <li>Imagina un lugar que te transmita calma (playa, bosque, montaña).</li>
+            <li>Explora ese espacio con todos tus sentidos: colores, sonidos, texturas.</li>
+            <li>Permanece allí 10 minutos y regresa lentamente abriendo los ojos.</li>
+          </ol>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Tab: Respiración -->
+    <div id="respiracion" class="tab-content">
+      <div class="resource-grid">
+
+        <div class="resource-card respiracion-card">
+          <div class="icon">💨</div>
+          <span class="nivel">Principiante</span>
+          <h3>Respiración diafragmática</h3>
+          <p>También llamada respiración abdominal, activa el músculo diafragma para una respiración más profunda y eficiente. Reduce el estrés y mejora la oxigenación.</p>
+          <div class="meta">
+            <span>⏱ 5–10 min/día</span>
+            <span>😌 Reducción de estrés</span>
+          </div>
+          <br>
+          <ol class="steps-list">
+            <li>Siéntate o acuéstate con una mano en el pecho y otra en el abdomen.</li>
+            <li>Inhala lentamente por la nariz: el abdomen debe elevarse, el pecho mantenerse quieto.</li>
+            <li>Exhala despacio por la boca con los labios ligeramente fruncidos.</li>
+            <li>Repite 3 o 4 veces seguidas.</li>
+          </ol>
+        </div>
+
+        <div class="resource-card respiracion-card">
+          <div class="icon">⬛</div>
+          <span class="nivel">Principiante</span>
+          <h3>Respiración cuadrada (Box Breathing)</h3>
+          <p>Técnica de cuatro tiempos iguales que calma el sistema nervioso y mejora la concentración. Muy usada por deportistas y profesionales en situaciones de alta presión.</p>
+          <div class="meta">
+            <span>⏱ 5 minutos</span>
+            <span>🎯 Concentración</span>
+          </div>
+          <br>
+          <ol class="steps-list">
+            <li>Exhala todo el aire por la boca.</li>
+            <li>Inhala por la nariz contando hasta 4.</li>
+            <li>Retén el aire contando hasta 4.</li>
+            <li>Exhala por la boca contando hasta 4. Repite 4 veces.</li>
+          </ol>
+        </div>
+
+        <div class="resource-card respiracion-card">
+          <div class="icon">4️⃣</div>
+          <span class="nivel">Intermedio</span>
+          <h3>Técnica 4-7-8</h3>
+          <p>Popularizada por el Dr. Andrew Weil, esta técnica activa el sistema nervioso parasimpático. Especialmente útil para reducir la ansiedad y facilitar el sueño.</p>
+          <div class="meta">
+            <span>⏱ 3–5 minutos</span>
+            <span>😴 Sueño y ansiedad</span>
+          </div>
+          <br>
+          <ol class="steps-list">
+            <li>Siéntate con la espalda recta y coloca la lengua detrás de los dientes superiores.</li>
+            <li>Exhala completamente por la boca haciendo un sonido suave.</li>
+            <li>Inhala por la nariz contando hasta 4.</li>
+            <li>Retén la respiración contando hasta 7. Luego exhala por la boca contando hasta 8. Repite 4 ciclos.</li>
+          </ol>
+        </div>
+
+        <div class="resource-card respiracion-card">
+          <div class="icon">🔁</div>
+          <span class="nivel">Principiante</span>
+          <h3>Respiración rítmica</h3>
+          <p>Consiste en mantener un patrón constante de inhalación y exhalación con la misma duración. Ayuda a estabilizar el estado emocional y a mantener la calma.</p>
+          <div class="meta">
+            <span>⏱ 5 minutos</span>
+            <span>⚖️ Equilibrio emocional</span>
+          </div>
+          <br>
+          <ol class="steps-list">
+            <li>Busca una posición cómoda, sentado o acostado.</li>
+            <li>Inhala por la nariz contando hasta 4.</li>
+            <li>Exhala por la nariz contando hasta 4.</li>
+            <li>Mantén el ritmo constante durante 5 minutos, sin pausas entre ciclos.</li>
+          </ol>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Tab: Artículos -->
+    <div id="articulos" class="tab-content">
+      <div class="articulos-grid">
+
+        <div class="articulo-card">
+          <div class="emoji-cover">🧠</div>
+          <div class="content">
+            <span class="tag">Salud mental</span>
+            <h3>¿Qué es el mindfulness y por qué funciona?</h3>
+            <p>El mindfulness o atención plena es una práctica que entrena la mente para enfocarse en el momento presente con apertura y sin juicio. Numerosas investigaciones han demostrado que su práctica regular contribuye a reducir el estrés, mejorar la concentración, regular las emociones y fomentar una visión más positiva de la vida. No requiere equipo ni experiencia previa: solo unos minutos al día y la disposición de observar sin reaccionar.</p>
+            <div class="meta">
+              <span>⏱ Lectura: 4 min</span>
+              <span>📅 Bienestar diario</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="articulo-card">
+          <div class="emoji-cover">😴</div>
+          <div class="content">
+            <span class="tag">Sueño</span>
+            <h3>Cómo mejorar la calidad del sueño con técnicas de relajación</h3>
+            <p>El descanso nocturno es fundamental para la salud física y mental. Técnicas como la respiración profunda, la relajación muscular progresiva y la meditación de visualización antes de dormir pueden ayudar a calmar la mente, liberar tensiones acumuladas y preparar el cuerpo para un sueño reparador. Incorporarlas como rutina nocturna puede marcar una diferencia significativa en tu calidad de vida.</p>
+            <div class="meta">
+              <span>⏱ Lectura: 5 min</span>
+              <span>📅 Hábitos saludables</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="articulo-card">
+          <div class="emoji-cover">💚</div>
+          <div class="content">
+            <span class="tag">Emociones</span>
+            <h3>Regulación emocional: aprende a gestionar lo que sientes</h3>
+            <p>Las emociones son señales que nos dan información sobre lo que nos ocurre. Aprender a reconocerlas, nombrarlas y gestionarlas sin suprimirlas ni dejarse arrastrar por ellas es una habilidad que se entrena. Prácticas como el escaneo corporal, la escritura reflexiva y la meditación de compasión son herramientas eficaces para desarrollar una mayor inteligencia emocional en el día a día.</p>
+            <div class="meta">
+              <span>⏱ Lectura: 6 min</span>
+              <span>📅 Inteligencia emocional</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="articulo-card">
+          <div class="emoji-cover">🌱</div>
+          <div class="content">
+            <span class="tag">Hábitos</span>
+            <h3>5 hábitos simples para cuidar tu bienestar emocional cada día</h3>
+            <p>El bienestar emocional no depende de grandes cambios sino de pequeñas acciones sostenidas en el tiempo. Dedicar 5 minutos a la respiración consciente, escribir tres cosas por las que estás agradecido, hacer una pausa activa al mediodía, limitar el tiempo en redes sociales y establecer una rutina de sueño son prácticas accesibles que, combinadas, tienen un impacto real en tu estado de ánimo y salud mental.</p>
+            <div class="meta">
+              <span>⏱ Lectura: 4 min</span>
+              <span>📅 Rutina y autocuidado</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="articulo-card">
+          <div class="emoji-cover">🤝</div>
+          <div class="content">
+            <span class="tag">Relaciones</span>
+            <h3>La conexión social como pilar del bienestar mental</h3>
+            <p>Los vínculos humanos son una de las fuentes más importantes de bienestar emocional. Compartir experiencias, sentirse escuchado y apoyado, y pertenecer a una comunidad tienen efectos protectores sobre la salud mental. Cultivar relaciones auténticas, practicar la escucha activa y pedir ayuda cuando se necesita son actos de autocuidado que fortalecen la resiliencia emocional.</p>
+            <div class="meta">
+              <span>⏱ Lectura: 5 min</span>
+              <span>📅 Vínculos y comunidad</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </section>
+
+  <footer>
+    <p>&copy; 2026 Âme - Todos los derechos reservados</p>
+  </footer>
+
+  <script>
+    function showTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      event.target.classList.add('active');
+    }
+  </script>
+
+  <script src="dashboard.js" defer></script>
+</body>
+</html>

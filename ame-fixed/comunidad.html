@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comunidad - Âme</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    :root {
+      --verde: #2d6a4f;
+      --verde-medio: #40916c;
+      --verde-claro: #52b788;
+      --verde-suave: #d8f3dc;
+      --gris: #555;
+    }
+
+    /* ── Hero ── */
+    .comunidad-hero {
+      background: linear-gradient(135deg, var(--verde) 0%, var(--verde-medio) 50%, var(--verde-claro) 100%);
+      color: white;
+      padding: 60px 40px;
+      text-align: center;
+      border-radius: 16px;
+      margin-bottom: 40px;
+    }
+    .comunidad-hero h2 { font-size: 2.2rem; margin-bottom: 12px; }
+    .comunidad-hero p  { font-size: 1.1rem; opacity: 0.9; max-width: 600px; margin: 0 auto; }
+
+    /* ── Layout principal ── */
+    .comunidad-layout {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 28px;
+      align-items: start;
+    }
+
+    @media (max-width: 768px) {
+      .comunidad-layout { grid-template-columns: 1fr; }
+    }
+
+    /* ── Nueva publicación ── */
+    .nueva-publicacion {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+    }
+    .nueva-publicacion h3 {
+      color: var(--verde); font-size: 1.05rem;
+      margin-bottom: 16px;
+    }
+    .form-fila {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .form-fila input,
+    .form-fila select {
+      padding: 10px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      color: #333;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+      width: 100%;
+    }
+    .form-fila input:focus,
+    .form-fila select:focus {
+      outline: none;
+      border-color: var(--verde-claro);
+    }
+    .input-titulo {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    .input-titulo:focus { outline: none; border-color: var(--verde-claro); }
+    .textarea-pub {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      resize: vertical;
+      min-height: 90px;
+      box-sizing: border-box;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      margin-bottom: 12px;
+    }
+    .textarea-pub:focus { outline: none; border-color: var(--verde-claro); }
+    .btn-publicar {
+      background: var(--verde);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 28px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-publicar:hover { background: var(--verde-medio); }
+
+    /* ── Filtros ── */
+    .filtros {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .filtro-btn {
+      background: #f0f0f0;
+      border: none;
+      border-radius: 20px;
+      padding: 7px 16px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: #555;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    .filtro-btn.active, .filtro-btn:hover {
+      background: var(--verde-suave);
+      color: var(--verde);
+    }
+
+    /* ── Publicaciones ── */
+    .publicaciones-lista { display: flex; flex-direction: column; gap: 20px; }
+
+    .publicacion-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+      transition: transform 0.2s;
+    }
+    .publicacion-card:hover { transform: translateY(-2px); }
+
+    .pub-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    .pub-autor {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .pub-avatar {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: var(--verde-suave);
+      display: flex; align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+    .pub-avatar.psicologo { background: #e3f2fd; }
+    .pub-nombre { font-weight: 700; color: #333; font-size: 0.95rem; }
+    .pub-rol {
+      font-size: 0.78rem;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+    .pub-rol.cliente    { background: var(--verde-suave); color: var(--verde); }
+    .pub-rol.psicologo  { background: #e3f2fd; color: #1565c0; }
+    .pub-fecha { font-size: 0.82rem; color: #aaa; }
+
+    .pub-categoria {
+      display: inline-block;
+      background: #f5f5f5;
+      color: #666;
+      font-size: 0.78rem;
+      padding: 3px 10px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+    .pub-titulo {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #222;
+      margin-bottom: 8px;
+    }
+    .pub-texto {
+      color: var(--gris);
+      font-size: 0.93rem;
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .pub-acciones {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      border-top: 1px solid #f0f0f0;
+      padding-top: 14px;
+    }
+    .btn-accion {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.88rem;
+      color: #888;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .btn-accion:hover     { background: var(--verde-suave); color: var(--verde); }
+    .btn-accion.liked     { color: #e53935; }
+    .btn-accion.liked:hover { background: #ffebee; color: #e53935; }
+
+    /* ── Comentarios ── */
+    .comentarios-section {
+      display: none;
+      margin-top: 16px;
+      border-top: 1px solid #f0f0f0;
+      padding-top: 16px;
+    }
+    .comentarios-section.open { display: block; }
+
+    .comentario {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .comentario-avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--verde-suave);
+      display: flex; align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .comentario-avatar.psicologo { background: #e3f2fd; }
+    .comentario-burbuja {
+      background: #f8f8f8;
+      border-radius: 12px;
+      padding: 10px 14px;
+      flex: 1;
+    }
+    .comentario-burbuja .nombre {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #333;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .comentario-burbuja p {
+      font-size: 0.88rem;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    .form-comentario {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      align-items: center;
+    }
+    .form-comentario input {
+      flex: 1;
+      padding: 9px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      transition: border-color 0.2s;
+    }
+    .form-comentario input:focus {
+      outline: none;
+      border-color: var(--verde-claro);
+    }
+    .form-comentario select {
+      padding: 9px 10px;
+      border: 1.5px solid #ddd;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      color: #555;
+    }
+    .btn-enviar-comentario {
+      background: var(--verde);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 9px 18px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .btn-enviar-comentario:hover { background: var(--verde-medio); }
+
+    /* ── Sidebar ── */
+    .sidebar-card {
+      background: white;
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+      margin-bottom: 20px;
+    }
+    .sidebar-card h3 {
+      color: var(--verde);
+      font-size: 1rem;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--verde-suave);
+    }
+    .regla-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      font-size: 0.88rem;
+      color: #555;
+      line-height: 1.5;
+    }
+    .regla-num {
+      background: var(--verde-suave);
+      color: var(--verde);
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .categoria-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #f5f5f5;
+      font-size: 0.9rem;
+      color: #444;
+      cursor: pointer;
+    }
+    .categoria-item:hover { color: var(--verde); }
+    .categoria-count {
+      background: var(--verde-suave);
+      color: var(--verde);
+      font-size: 0.78rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    /* ── Volver ── */
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--verde); text-decoration: none;
+      font-weight: 600; margin-bottom: 28px; font-size: 0.95rem;
+      transition: gap 0.2s;
+    }
+    .back-btn:hover { gap: 12px; }
+
+    /* ── Sin publicaciones ── */
+    .empty-state {
+      text-align: center;
+      padding: 50px 20px;
+      color: #aaa;
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 14px; }
+    .empty-state p { font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <h1 class="logo">Âme</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="login.html">Cerrar sesión</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="dashboard">
+    <a href="cliente.html" class="back-btn">← Volver al inicio</a>
+
+    <div class="comunidad-hero">
+      <h2>💬 Comunidad Âme</h2>
+      <p>Comparte experiencias y recibe apoyo dentro de un entorno seguro. Aquí todos nos acompañamos.</p>
+    </div>
+
+    <div class="comunidad-layout">
+
+      <!-- ══ Columna principal ══ -->
+      <div>
+
+        <!-- Nueva publicación -->
+        <div class="nueva-publicacion">
+          <h3>✏️ Nueva publicación</h3>
+          <div class="form-fila">
+            <input type="text" id="inputNombre" placeholder="Tu nombre o apodo">
+            <select id="inputRol">
+              <option value="">¿Quién eres?</option>
+              <option value="cliente">Cliente</option>
+              <option value="psicologo">Psicólogo/a</option>
+            </select>
+          </div>
+          <input class="input-titulo" type="text" id="inputTitulo" placeholder="Título de tu publicación">
+          <select id="inputCategoria" style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:10px;font-size:0.92rem;margin-bottom:12px;box-sizing:border-box;">
+            <option value="">Selecciona una categoría</option>
+            <option>Ansiedad y estrés</option>
+            <option>Relaciones y vínculos</option>
+            <option>Autoestima y crecimiento</option>
+            <option>Duelo y pérdida</option>
+            <option>Trabajo y burnout</option>
+            <option>Sueño y descanso</option>
+            <option>General</option>
+          </select>
+          <textarea class="textarea-pub" id="inputTexto" placeholder="Comparte tu experiencia, pregunta o reflexión..."></textarea>
+          <button class="btn-publicar" onclick="publicar()">Publicar</button>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filtros">
+          <button class="filtro-btn active" onclick="filtrar('todos', this)">Todos</button>
+          <button class="filtro-btn" onclick="filtrar('Ansiedad y estrés', this)">Ansiedad y estrés</button>
+          <button class="filtro-btn" onclick="filtrar('Relaciones y vínculos', this)">Relaciones</button>
+          <button class="filtro-btn" onclick="filtrar('Autoestima y crecimiento', this)">Autoestima</button>
+          <button class="filtro-btn" onclick="filtrar('Duelo y pérdida', this)">Duelo</button>
+          <button class="filtro-btn" onclick="filtrar('Trabajo y burnout', this)">Trabajo</button>
+          <button class="filtro-btn" onclick="filtrar('General', this)">General</button>
+        </div>
+
+        <!-- Lista de publicaciones -->
+        <div class="publicaciones-lista" id="listaPublicaciones">
+          <div class="empty-state">
+            <div class="icon">🌱</div>
+            <p>Aún no hay publicaciones.<br>¡Sé el primero en compartir algo!</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══ Sidebar ══ -->
+      <div>
+
+        <!-- Normas de la comunidad -->
+        <div class="sidebar-card">
+          <h3>📋 Normas de la comunidad</h3>
+          <div class="regla-item">
+            <div class="regla-num">1</div>
+            Respeta a todos los miembros sin importar su situación.
+          </div>
+          <div class="regla-item">
+            <div class="regla-num">2</div>
+            No compartas información personal sensible.
+          </div>
+          <div class="regla-item">
+            <div class="regla-num">3</div>
+            Evita el lenguaje ofensivo o discriminatorio.
+          </div>
+          <div class="regla-item">
+            <div class="regla-num">4</div>
+            Este espacio no reemplaza la atención profesional.
+          </div>
+          <div class="regla-item">
+            <div class="regla-num">5</div>
+            Comparte desde la experiencia propia, con empatía.
+          </div>
+        </div>
+
+        <!-- Categorías -->
+        <div class="sidebar-card">
+          <h3>🏷️ Categorías</h3>
+          <div class="categoria-item" onclick="filtrar('Ansiedad y estrés', null)">
+            😰 Ansiedad y estrés <span class="categoria-count" id="cnt-Ansiedad y estrés">0</span>
+          </div>
+          <div class="categoria-item" onclick="filtrar('Relaciones y vínculos', null)">
+            🤝 Relaciones <span class="categoria-count" id="cnt-Relaciones y vínculos">0</span>
+          </div>
+          <div class="categoria-item" onclick="filtrar('Autoestima y crecimiento', null)">
+            💚 Autoestima <span class="categoria-count" id="cnt-Autoestima y crecimiento">0</span>
+          </div>
+          <div class="categoria-item" onclick="filtrar('Duelo y pérdida', null)">
+            🕊️ Duelo <span class="categoria-count" id="cnt-Duelo y pérdida">0</span>
+          </div>
+          <div class="categoria-item" onclick="filtrar('Trabajo y burnout', null)">
+            💼 Trabajo <span class="categoria-count" id="cnt-Trabajo y burnout">0</span>
+          </div>
+          <div class="categoria-item" onclick="filtrar('Sueño y descanso', null)">
+            😴 Sueño <span class="categoria-count" id="cnt-Sueño y descanso">0</span>
+          </div>
+          <div class="categoria-item" onclick="filtrar('General', null)">
+            💬 General <span class="categoria-count" id="cnt-General">0</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>&copy; 2026 Âme - Todos los derechos reservados</p>
+  </footer>
+
+  <script>
+    // ── Estado global ──
+    let publicaciones = [];    // array con todas las publicaciones
+    let filtroActual  = 'todos';
+
+    // ── Publicar ──
+    function publicar() {
+      const nombre    = document.getElementById('inputNombre').value.trim();
+      const rol       = document.getElementById('inputRol').value;
+      const titulo    = document.getElementById('inputTitulo').value.trim();
+      const categoria = document.getElementById('inputCategoria').value;
+      const texto     = document.getElementById('inputTexto').value.trim();
+
+      // Validación
+      if (!nombre || !rol || !titulo || !categoria || !texto) {
+        alert('Por favor completa todos los campos antes de publicar.');
+        return;
+      }
+
+      // Crear objeto publicación
+      const nuevaPublicacion = {
+        id:         Date.now(),          // ID único basado en el tiempo
+        nombre,
+        rol,
+        titulo,
+        categoria,
+        texto,
+        fecha:      new Date(),
+        likes:      0,
+        likedByMe:  false,
+        comentarios: []
+      };
+
+      // Agregar al inicio del array
+      publicaciones.unshift(nuevaPublicacion);
+
+      // Limpiar formulario
+      document.getElementById('inputNombre').value    = '';
+      document.getElementById('inputRol').value       = '';
+      document.getElementById('inputTitulo').value    = '';
+      document.getElementById('inputCategoria').value = '';
+      document.getElementById('inputTexto').value     = '';
+
+      actualizarContadores();
+      renderPublicaciones();
+    }
+
+    // ── Dar like ──
+    function toggleLike(id) {
+      const pub = publicaciones.find(p => p.id === id);
+      if (!pub) return;
+      pub.likedByMe = !pub.likedByMe;
+      pub.likes += pub.likedByMe ? 1 : -1;
+      renderPublicaciones();
+    }
+
+    // ── Mostrar/ocultar comentarios ──
+    function toggleComentarios(id) {
+      const section = document.getElementById('comentarios-' + id);
+      section.classList.toggle('open');
+    }
+
+    // ── Agregar comentario ──
+    function agregarComentario(id) {
+      const inputNombre = document.getElementById('com-nombre-' + id).value.trim();
+      const inputRol    = document.getElementById('com-rol-' + id).value;
+      const inputTexto  = document.getElementById('com-texto-' + id).value.trim();
+
+      if (!inputNombre || !inputRol || !inputTexto) {
+        alert('Completa tu nombre, rol y comentario.');
+        return;
+      }
+
+      const pub = publicaciones.find(p => p.id === id);
+      if (!pub) return;
+
+      pub.comentarios.push({
+        nombre:    inputNombre,
+        rol:       inputRol,
+        texto:     inputTexto,
+        fecha:     new Date()
+      });
+
+      renderPublicaciones();
+
+      // Volver a abrir la sección de comentarios
+      setTimeout(() => {
+        const section = document.getElementById('comentarios-' + id);
+        if (section) section.classList.add('open');
+      }, 10);
+    }
+
+    // ── Filtrar ──
+    function filtrar(categoria, btn) {
+      filtroActual = categoria;
+      document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderPublicaciones();
+    }
+
+    // ── Formatear fecha ──
+    function formatearFecha(fecha) {
+      return new Date(fecha).toLocaleDateString('es-CO', {
+        day: 'numeric', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      });
+    }
+
+    // ── Actualizar contadores del sidebar ──
+    function actualizarContadores() {
+      const categorias = ['Ansiedad y estrés','Relaciones y vínculos','Autoestima y crecimiento',
+                          'Duelo y pérdida','Trabajo y burnout','Sueño y descanso','General'];
+      categorias.forEach(cat => {
+        const el = document.getElementById('cnt-' + cat);
+        if (el) el.textContent = publicaciones.filter(p => p.categoria === cat).length;
+      });
+    }
+
+    // ── Renderizar publicaciones ──
+    function renderPublicaciones() {
+      const lista = document.getElementById('listaPublicaciones');
+
+      // Filtrar
+      const filtradas = filtroActual === 'todos'
+        ? publicaciones
+        : publicaciones.filter(p => p.categoria === filtroActual);
+
+      // Sin publicaciones
+      if (filtradas.length === 0) {
+        lista.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">🌱</div>
+            <p>No hay publicaciones en esta categoría.<br>¡Sé el primero en compartir algo!</p>
+          </div>`;
+        return;
+      }
+
+      // Renderizar cada publicación
+      lista.innerHTML = filtradas.map(pub => {
+        const esPs = pub.rol === 'psicologo';
+        const comentariosHtml = pub.comentarios.map(com => {
+          const esPsCom = com.rol === 'psicologo';
+          return `
+            <div class="comentario">
+              <div class="comentario-avatar ${esPsCom ? 'psicologo' : ''}">${esPsCom ? '🧑‍⚕️' : '😊'}</div>
+              <div class="comentario-burbuja">
+                <div class="nombre">
+                  ${com.nombre}
+                  <span class="pub-rol ${com.rol}">${esPsCom ? 'Psicólogo/a' : 'Cliente'}</span>
+                </div>
+                <p>${com.texto}</p>
+              </div>
+            </div>`;
+        }).join('');
+
+        return `
+          <div class="publicacion-card">
+            <div class="pub-header">
+              <div class="pub-autor">
+                <div class="pub-avatar ${esPs ? 'psicologo' : ''}">${esPs ? '🧑‍⚕️' : '😊'}</div>
+                <div>
+                  <div class="pub-nombre">${pub.nombre}</div>
+                  <span class="pub-rol ${pub.rol}">${esPs ? 'Psicólogo/a' : 'Cliente'}</span>
+                </div>
+              </div>
+              <div class="pub-fecha">${formatearFecha(pub.fecha)}</div>
+            </div>
+
+            <div class="pub-categoria">${pub.categoria}</div>
+            <div class="pub-titulo">${pub.titulo}</div>
+            <div class="pub-texto">${pub.texto}</div>
+
+            <div class="pub-acciones">
+              <button class="btn-accion ${pub.likedByMe ? 'liked' : ''}" onclick="toggleLike(${pub.id})">
+                ${pub.likedByMe ? '❤️' : '🤍'} ${pub.likes} Me apoya
+              </button>
+              <button class="btn-accion" onclick="toggleComentarios(${pub.id})">
+                💬 ${pub.comentarios.length} Comentario${pub.comentarios.length !== 1 ? 's' : ''}
+              </button>
+            </div>
+
+            <div class="comentarios-section" id="comentarios-${pub.id}">
+              ${comentariosHtml}
+              <div class="form-comentario">
+                <input type="text" id="com-nombre-${pub.id}" placeholder="Tu nombre">
+                <select id="com-rol-${pub.id}">
+                  <option value="">Rol</option>
+                  <option value="cliente">Cliente</option>
+                  <option value="psicologo">Psicólogo/a</option>
+                </select>
+                <input type="text" id="com-texto-${pub.id}" placeholder="Escribe un comentario..."
+                  onkeypress="if(event.key==='Enter') agregarComentario(${pub.id})">
+                <button class="btn-enviar-comentario" onclick="agregarComentario(${pub.id})">Enviar</button>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    // Render inicial
+    renderPublicaciones();
+  </script>
+
+  <script src="dashboard.js" defer></script>
+</body>
+</html>

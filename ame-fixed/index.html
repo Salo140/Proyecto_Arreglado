@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Âme — Tu espacio de bienestar emocional</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <h1 class="logo">Âme</h1>
+    <nav>
+      <ul>
+        <li><a href="#recursos">Recursos</a></li>
+        <li><a href="#comunidad">Comunidad</a></li>
+        <li><a href="#ia">Asistente IA</a></li>
+        <li><a href="#servicios">Servicios</a></li>
+        <li><a href="login.html" class="btn" style="padding:8px 18px;font-size:0.88rem;">Iniciar sesión</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-text">
+      <h2>Tu espacio seguro para crecer emocionalmente</h2>
+      <p>Registra tu progreso, conversa con nuestra IA empática y conecta con profesionales de la salud mental.</p>
+      <a href="login.html" class="btn">Comenzar ahora</a>
+    </div>
+    <div class="hero-img">
+      <img src="naturaleza.jpg" alt="Bienestar en la naturaleza">
+    </div>
+  </section>
+
+  <!-- Recursos -->
+  <section id="recursos" class="section">
+    <h2>Recursos de Bienestar</h2>
+    <p class="section-subtitle">Herramientas para tu cuidado diario</p>
+    <div class="cards">
+      <div class="card">
+        <img src="meditacion.jpg" alt="Meditación">
+        <p>Meditación guiada</p>
+      </div>
+      <div class="card">
+        <img src="respiracion.jpg" alt="Respiración">
+        <p>Ejercicios de respiración</p>
+      </div>
+      <div class="card">
+        <img src="articulos.avif" alt="Artículos">
+        <p>Artículos sobre ansiedad</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comunidad -->
+  <section id="comunidad" class="section" style="background:var(--cream);">
+    <h2>Comunidad</h2>
+    <p class="section-subtitle">Un lugar seguro para compartir</p>
+    <div class="post">
+      <img src="sunset.jpg" alt="Publicación comunidad">
+      <p>"Hoy me siento un poco abrumada… pero sé que no estoy sola."</p>
+      <div class="actions">
+        <span>❤️ 23</span>
+        <span>💬 5</span>
+      </div>
+      <button class="btn">Comentar</button>
+    </div>
+  </section>
+
+  <!-- IA -->
+  <section id="ia" class="section ia-landing">
+    <h2>Asistente IA</h2>
+    <p class="section-subtitle">Un chat empático disponible para ti en cualquier momento.</p>
+    <p style="max-width:500px;margin:0 auto 28px;color:var(--text-mid);">
+      Âme te escucha, valida tus emociones y te acompaña. Recuerda que no reemplaza la terapia profesional.
+    </p>
+    <button class="btn" onclick="document.getElementById('ia-toggle-btn').click()">
+      💬 Abrir Chat IA
+    </button>
+  </section>
+
+  <!-- Servicios -->
+  <section id="servicios" class="section">
+    <h2>Servicios Premium</h2>
+    <p class="section-subtitle">Accede a sesiones con psicólogos certificados</p>
+    <a href="login.html" class="btn">Ver planes</a>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2026 Âme — Plataforma de bienestar emocional</p>
+  </footer>
+
+  <!-- ============================================
+       CHAT IA — MODAL FLOTANTE
+       ============================================ -->
+
+  <!-- Botón flotante -->
+  <button id="ia-toggle-btn" class="ia-toggle-btn" title="Abrir Asistente IA" aria-label="Abrir chat IA">
+    💬 Chat IA
+  </button>
+
+  <!-- Modal -->
+  <div id="ia-modal" class="ia-modal" role="dialog" aria-label="Chat IA Âme" aria-modal="true">
+
+    <!-- Header -->
+    <div class="ia-modal-header">
+      <div class="ia-header-content">
+        <h3>Âme — Asistente IA</h3>
+        <p class="ia-subtitle">Tu compañero empático 💙</p>
+      </div>
+      <button id="ia-close-btn" class="ia-close-btn" aria-label="Cerrar chat">✕</button>
+    </div>
+
+    <!-- Mensajes -->
+    <div id="ia-messages" class="ia-messages" role="log" aria-live="polite">
+      <div class="ia-message ia-bot-message ia-welcome">
+        <p>👋 Hola, soy Âme. Estoy aquí para escucharte y acompañarte. ¿Cómo te sientes hoy?</p>
+      </div>
+    </div>
+
+    <!-- Alerta de crisis -->
+    <div id="ia-crisis-alert" class="ia-crisis-alert" role="alert">
+      <div class="ia-crisis-header">🚨 Necesitamos Ayuda Profesional</div>
+      <p class="ia-crisis-text">
+        Parece que estás pasando por un momento muy difícil. <strong>No estás solo/a.</strong>
+        Por favor contacta una de estas líneas:
+      </p>
+      <div id="ia-emergency-lines" class="ia-emergency-lines"></div>
+      <p style="font-size:0.82rem;margin-top:8px;color:#c62828;">
+        ⚠️ Soy una IA y no puedo reemplazar la ayuda profesional.
+      </p>
+    </div>
+
+    <!-- Input -->
+    <div class="ia-input-area">
+      <div class="ia-country-selector">
+        <label for="ia-country">País:</label>
+        <select id="ia-country">
+          <option value="colombia">Colombia 🇨🇴</option>
+          <option value="mexico">México 🇲🇽</option>
+          <option value="argentina">Argentina 🇦🇷</option>
+          <option value="peru">Perú 🇵🇪</option>
+          <option value="chile">Chile 🇨🇱</option>
+          <option value="brasil">Brasil 🇧🇷</option>
+          <option value="spain">España 🇪🇸</option>
+          <option value="usa">USA 🇺🇸</option>
+          <option value="ecuador">Ecuador 🇪🇨</option>
+          <option value="venezuela">Venezuela 🇻🇪</option>
+          <option value="mundial">Internacional 🌍</option>
+        </select>
+      </div>
+      <div class="ia-input-wrapper">
+        <input
+          type="text"
+          id="ia-input"
+          class="ia-input"
+          placeholder="Escribe tu mensaje..."
+          autocomplete="off"
+          aria-label="Mensaje para el asistente IA"
+        >
+        <button id="ia-send-btn" class="ia-send-btn" aria-label="Enviar mensaje">
+          ↑ Enviar
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="ia-footer">
+      <small>ℹ️ Este chat <strong>no reemplaza</strong> la terapia profesional.</small>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="emergency-lines.js"></script>
+  <script src="ia-chat.js"></script>
+</body>
+</html>
