@@ -12,11 +12,10 @@
 // =============================================
 // CONFIGURACIÓN
 // Se puede inyectar desde el HTML antes de cargar este script:
-//   <script>window.AME_HF_TOKEN = 'hf_...';</script>
+//   <script>window.AME_CHAT_FUNCTION_URL = 'https://<tu-proyecto>.functions.supabase.co/chat';</script>
 // =============================================
-const HF_TOKEN = window.AME_HF_TOKEN || null;
-const HF_MODEL = 'mistralai/Mistral-7B-Instruct-v0.2';
-const HF_API_URL = `https://api-inference.huggingface.co/models/${HF_MODEL}`;
+const CHAT_FUNCTION_URL = window.AME_CHAT_FUNCTION_URL || null;
+const HF_MODEL = window.AME_HF_MODEL || 'mistralai/Mistral-7B-Instruct-v0.2';
 
 // =============================================
 // PALABRAS CLAVE DE CRISIS
@@ -223,12 +222,12 @@ class AmeChat {
       return this._localResponse(message, isCrisis);
     }
 
-    // Si hay token de Hugging Face, usar la API real
-    if (HF_TOKEN) {
+    // Si hay URL de función, usar la función segura en Supabase
+    if (CHAT_FUNCTION_URL) {
       try {
-        return await this._callHuggingFace(message);
+        return await this._callChatFunction(message);
       } catch (e) {
-        console.warn('[AmeChat] HF API falló, usando respuesta local:', e.message);
+        console.warn('[AmeChat] Chat function falló, usando respuesta local:', e.message);
         return this._localResponse(message, isCrisis);
       }
     }
@@ -237,61 +236,42 @@ class AmeChat {
     return this._localResponse(message, isCrisis);
   }
 
-  // ---- API DE HUGGING FACE ----
-  async _callHuggingFace(message) {
-    const systemPrompt = `Eres Âme, un asistente de apoyo emocional empático en español. 
-Tu rol es escuchar activamente, validar emociones y ofrecer apoyo emocional cálido. 
-IMPORTANTE: Siempre recuerda al usuario que no reemplazas la terapia profesional.
-Si detectas señales de crisis, deriva siempre a líneas de emergencia.
-Responde de forma concisa (máximo 3 oraciones), cálida y en español.`;
+  // ---- FUNCIÓN DE CHAT SEGURO ----
+  async _callChatFunction(message) {
+    const systemPrompt = `Eres Âme, un asistente de apoyo emocional empático en español. Tu rol es escuchar activamente, validar emociones y ofrecer apoyo emocional cálido. IMPORTANTE: Siempre recuerda al usuario que no reemplazas la terapia profesional. Si detectas señales de crisis, deriva siempre a las líneas de emergencia. Responde de forma cálida, cercana y en español, con un máximo de 3 oraciones.`;
 
-    const prompt = `<s>[INST] ${systemPrompt}
+    const payload = {
+      message,
+      systemPrompt,
+      history: this.conversationHistory
+        .filter(item => item.sender === 'user' || item.sender === 'bot')
+        .slice(-10)
+        .map(item => ({ role: item.sender === 'user' ? 'user' : 'assistant', content: item.text })),
+      country: this.userCountry,
+    };
 
-Usuario: ${message} [/INST]`;
-
-    const response = await fetch(HF_API_URL, {
+    const response = await fetch(CHAT_FUNCTION_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${HF_TOKEN}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        inputs: prompt,
-        parameters: {
-          max_new_tokens: 200,
-          temperature: 0.7,
-          top_p: 0.9,
-          do_sample: true,
-          return_full_text: false,
-        },
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`HF API ${response.status}: ${errText}`);
+      const err = await response.json().catch(() => null);
+      throw new Error(err?.error || `Chat function ${response.status}`);
     }
 
     const data = await response.json();
-
-    // HF devuelve un array o un objeto
-    let text = '';
-    if (Array.isArray(data) && data[0]?.generated_text) {
-      text = data[0].generated_text;
-    } else if (data.generated_text) {
-      text = data.generated_text;
-    } else if (data.error) {
-      throw new Error(data.error);
+    if (!data || typeof data.reply !== 'string') {
+      throw new Error('Respuesta inválida de la función de chat');
     }
 
-    // Limpiar el texto (a veces trae el prompt o etiquetas)
-    text = text.replace(/\[INST\].*?\[\/INST\]/gs, '').trim();
-    text = text.replace(/^Âme:|^Asistente:/i, '').trim();
-
-    return text || this._localResponse('', false);
+    return data.reply.trim();
   }
 
-  // ---- RESPUESTA LOCAL (fallback) ----
+  // ---- API DE HUGGING FACE ----
   _localResponse(message, isCrisis) {
     if (isCrisis) {
       return this._pick(RESPONSES.crisis);
