@@ -1,4 +1,11 @@
 # Âme — Plataforma de Bienestar Emocional
+# Proyecto
+Proyecto curso de Programación Web
+
+**Integrantes**
+Vanessa Ospina Ibarra
+Salomé Caicedo Santamaría
+
 
 ## Estructura del proyecto
 

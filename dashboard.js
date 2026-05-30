@@ -6,7 +6,15 @@
  */
 
 const API_URL = 'http://localhost:3000/api/citas';
-const STATIC_CITAS_URL = 'src/data/citas.json';
+const STATIC_CITAS_PATH = 'src/data/citas.json';
+
+function getStaticCitasUrl() {
+  return new URL(STATIC_CITAS_PATH, window.location.href).href;
+}
+
+function isLocalHost() {
+  return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+}
 
 // Esperar a que el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
@@ -62,34 +70,45 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function loadCitas() {
-    // Primero intento la API local. Si falla, uso datos de ejemplo desde el archivo estático.
-    try {
-      const controller = new AbortController();
-      const timeout    = setTimeout(() => controller.abort(), 4000);
+    const useApi = isLocalHost();
 
-      const response = await fetch(API_URL, { signal: controller.signal });
-      clearTimeout(timeout);
+    if (useApi) {
+      try {
+        const controller = new AbortController();
+        const timeout    = setTimeout(() => controller.abort(), 4000);
 
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const response = await fetch(API_URL, { signal: controller.signal });
+        clearTimeout(timeout);
 
-      const citas = await response.json();
-      renderCitas(citas);
-      return;
-    } catch (err) {
-      console.warn('[Dashboard] API local no disponible:', err.message);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const citas = await response.json();
+        renderCitas(citas);
+        return;
+      } catch (err) {
+        console.warn('[Dashboard] API local no disponible:', err.message);
+      }
     }
 
     try {
-      const response = await fetch(STATIC_CITAS_URL);
+      const response = await fetch(getStaticCitasUrl());
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const citas = await response.json();
       renderCitas(citas);
-      citasMsg.textContent += ' (Mostrando datos de ejemplo desde el archivo local.)';
+      if (!useApi) {
+        citasMsg.textContent += ' (Estás en GitHub Pages / sitio estático; aquí se muestran datos de ejemplo.)';
+      } else {
+        citasMsg.textContent += ' (No se pudo conectar con la API local, se muestran datos de ejemplo.)';
+      }
       return;
     } catch (err) {
       citasList.innerHTML = '';
-      citasMsg.innerHTML = '⚠️ No se pudo cargar la API de citas ni los datos de ejemplo. En local, ejecuta <code>npm run dev</code> y recarga la página.';
+      if (!useApi) {
+        citasMsg.innerHTML = '⚠️ La página no puede conectarse a la API local desde GitHub Pages. Los datos de citas solo funcionan al ejecutar <code>npm run dev</code> en local.';
+      } else {
+        citasMsg.innerHTML = '⚠️ No se pudo cargar la API de citas ni los datos de ejemplo. En local, ejecuta <code>npm run dev</code> y recarga la página.';
+      }
       console.warn('[Dashboard] Fallback de citas no disponible:', err.message);
     }
   }
