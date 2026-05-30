@@ -14,7 +14,16 @@
 // Se puede inyectar desde el HTML antes de cargar este script:
 //   <script>window.AME_CHAT_FUNCTION_URL = 'https://<tu-proyecto>.functions.supabase.co/chat';</script>
 // =============================================
-const CHAT_FUNCTION_URL = window.AME_CHAT_FUNCTION_URL || null;
+function getChatFunctionUrl() {
+  const url = window.AME_CHAT_FUNCTION_URL || '';
+  if (!url || url.includes('<tu-proyecto>') || url.includes('example')) {
+    console.warn('[AmeChat] Chat function URL no configurada correctamente. Reemplaza el placeholder con tu URL real.');
+    return null;
+  }
+  return url;
+}
+
+const CHAT_FUNCTION_URL = getChatFunctionUrl();
 const HF_MODEL = window.AME_HF_MODEL || 'mistralai/Mistral-7B-Instruct-v0.2';
 
 // =============================================
