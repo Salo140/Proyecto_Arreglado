@@ -532,7 +532,8 @@
         return;
       }
 
-      // clear current static cards
+      // preserve current static cards and render approved ones above them
+      const staticContent = grid.innerHTML;
       grid.innerHTML = '';
 
       users.forEach(u => {
@@ -562,6 +563,16 @@
 
         grid.appendChild(card);
       });
+
+      // append back the original static content below the approved cards
+      if (staticContent) {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = staticContent;
+        // move children from wrapper into grid
+        while (wrapper.firstChild) {
+          grid.appendChild(wrapper.firstChild);
+        }
+      }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
