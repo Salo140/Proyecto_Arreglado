@@ -16,6 +16,17 @@ function isLocalHost() {
   return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 }
 
+function getCurrentUser() {
+  const stored = localStorage.getItem('currentUser');
+  if (!stored) return null;
+  try {
+    return JSON.parse(stored);
+  } catch (err) {
+    console.warn('[Dashboard] currentUser inválido en localStorage:', err);
+    return null;
+  }
+}
+
 // Esperar a que el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
   const citasList   = document.getElementById('citasList');
@@ -24,9 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Si no hay elementos de citas en esta página, salir
   if (!citasList || !citasMsg) return;
 
+  const currentUser   = getCurrentUser();
   const bodyEl        = document.body;
-  const role          = bodyEl.dataset.role        || '';
-  const psicologoName = bodyEl.dataset.psicologo || '';
+  const role          = currentUser?.role || bodyEl.dataset.role || '';
+  const clienteName   = currentUser?.name || bodyEl.dataset.cliente || '';
+  const psicologoName = currentUser?.name || bodyEl.dataset.psicologo || '';
   const useApi        = isLocalHost();
 
   const roleLabels = {
@@ -39,8 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const canManageCitas = () => useApi && isCliente;
 
   function filterCitas(citas) {
-    if (role === 'cliente') {
-      const clienteName = bodyEl.dataset.cliente || '';
+    if (role === 'cliente' && clienteName) {
       return citas.filter(c => c.cliente === clienteName);
     }
 
@@ -177,9 +189,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const citas = await response.json();
       renderCitas(citas);
       if (!useApi) {
-        citasMsg.textContent += ' (Estás en GitHub Pages / sitio estático; aquí se muestran datos de ejemplo.)';
+        citasMsg.textContent += ' (Estás usando datos de ejemplo. Verifica que el servidor local esté corriendo con npm run dev para ver tus citas reales).';
       } else {
-        citasMsg.textContent += ' (No se pudo conectar con la API local, se muestran datos de ejemplo.)';
+        citasMsg.textContent += ' (No se pudo conectar con la API local, se muestran datos de ejemplo).';
+      }
+      if (currentUser && currentUser.name) {
+        citasMsg.textContent += ` Usuario actual: ${currentUser.name}.`;
       }
       return;
     } catch (err) {
