@@ -19,45 +19,111 @@
   </header>
 
   <main class="login-section">
-    <h2>Bienvenido de nuevo</h2>
-    <p>Elige tu perfil para acceder a la plataforma.</p>
-
-    <div class="role-tabs" role="tablist">
-      <button type="button" class="role-button" data-role="cliente">Cliente</button>
-      <button type="button" class="role-button" data-role="administrativo">Administrativo</button>
-      <button type="button" class="role-button" data-role="psicologos">Psicólogos</button>
+    <!-- Contenedor de tabs login/registro -->
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab-button active" data-tab="login">Iniciar sesión</button>
+      <button type="button" class="auth-tab-button" data-tab="register">Registrarse</button>
     </div>
 
-    <form id="loginForm" class="login-form" novalidate>
-      <input type="hidden" id="selectedRole" name="role" value="cliente">
+    <!-- PESTAÑA DE LOGIN -->
+    <div id="login-tab" class="auth-tab-content active">
+      <h2>Bienvenido de nuevo</h2>
+      <p>Elige tu perfil para acceder a la plataforma.</p>
 
-      <label for="username">Correo electrónico</label>
-      <input
-        type="text"
-        id="username"
-        name="username"
-        placeholder="ejemplo@correo.com"
-        autocomplete="username"
-        required
-      >
+      <div class="role-tabs" role="tablist">
+        <button type="button" class="role-button" data-role="cliente">Cliente</button>
+        <button type="button" class="role-button" data-role="administrativo">Administrativo</button>
+        <button type="button" class="role-button" data-role="psicologos">Psicólogos</button>
+      </div>
 
-      <label for="password">Contraseña</label>
-      <input
-        type="password"
-        id="password"
-        name="password"
-        placeholder="••••••••"
-        autocomplete="current-password"
-        required
-      >
+      <form id="loginForm" class="login-form" novalidate>
+        <input type="hidden" id="selectedRole" name="role" value="cliente">
 
-      <p id="roleInfo" class="inline-note"></p>
-      <div id="demoCredentials" class="demo-box"></div>
+        <label for="username">Correo electrónico</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          placeholder="ejemplo@correo.com"
+          autocomplete="username"
+          required
+        >
 
-      <div id="loginMessage" class="alert hidden"></div>
+        <label for="password">Contraseña</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="••••••••"
+          autocomplete="current-password"
+          required
+        >
 
-      <button type="submit" class="btn">Ingresar</button>
-    </form>
+        <p id="roleInfo" class="inline-note"></p>
+        <div id="demoCredentials" class="demo-box"></div>
+
+        <div id="loginMessage" class="alert hidden"></div>
+
+        <button type="submit" class="btn">Ingresar</button>
+      </form>
+    </div>
+
+    <!-- PESTAÑA DE REGISTRO -->
+    <div id="register-tab" class="auth-tab-content">
+      <h2>Crear nueva cuenta</h2>
+      <p>Completa el formulario para registrarte en Âme.</p>
+
+      <div class="role-tabs" role="tablist">
+        <button type="button" class="role-button register-role" data-role="cliente">Cliente</button>
+        <button type="button" class="role-button register-role" data-role="psicologos">Psicólogo</button>
+      </div>
+
+      <form id="registerForm" class="login-form" novalidate>
+        <input type="hidden" id="registerRole" name="role" value="cliente">
+
+        <label for="registerName">Nombre completo</label>
+        <input
+          type="text"
+          id="registerName"
+          name="name"
+          placeholder="Tu nombre"
+          required
+        >
+
+        <label for="registerEmail">Correo electrónico</label>
+        <input
+          type="email"
+          id="registerEmail"
+          name="email"
+          placeholder="ejemplo@correo.com"
+          required
+        >
+
+        <label for="registerPassword">Contraseña</label>
+        <input
+          type="password"
+          id="registerPassword"
+          name="password"
+          placeholder="••••••••"
+          required
+        >
+
+        <label for="registerConfirmPassword">Confirmar contraseña</label>
+        <input
+          type="password"
+          id="registerConfirmPassword"
+          name="confirmPassword"
+          placeholder="••••••••"
+          required
+        >
+
+        <p id="registerRoleInfo" class="inline-note"></p>
+
+        <div id="registerMessage" class="alert hidden"></div>
+
+        <button type="submit" class="btn">Registrarse</button>
+      </form>
+    </div>
   </main>
 
   <footer>
