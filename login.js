@@ -264,6 +264,13 @@ registerForm.addEventListener('submit', (e) => {
   }
 });
 
+function clearCurrentUserSession() {
+  localStorage.removeItem('currentUser');
+}
+
 // ============= INICIALIZACIÓN =============
-updateRole('cliente');
-updateRegisterRole('cliente');
+window.addEventListener('DOMContentLoaded', () => {
+  clearCurrentUserSession();
+  updateRole('cliente');
+  updateRegisterRole('cliente');
+});
