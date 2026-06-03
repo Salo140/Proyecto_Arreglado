@@ -719,6 +719,16 @@ footer {
   gap: 12px;
 }
 
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-group label {
+  margin-bottom: 4px;
+}
+
 .login-form input:focus {
   outline: none;
   border-color: var(--green-light);

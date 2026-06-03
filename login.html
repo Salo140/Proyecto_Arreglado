@@ -118,62 +118,56 @@
         >
 
         <div id="psychologistFields" class="psychologist-fields hidden">
-          <label for="registerCertificate">Número de certificado profesional</label>
-          <input
-            type="text"
-            id="registerCertificate"
-            name="certificate"
-            placeholder="Ej. CNPS-123456"
-          >
+          <div class="field-group">
+            <label for="registerCertificate">Número de certificado profesional</label>
+            <input
+              type="text"
+              id="registerCertificate"
+              name="certificate"
+              placeholder="Ej. CNPS-123456"
+            >
+          </div>
 
-          <label for="registerSpecialty">Especialidad</label>
-          <input
-            type="text"
-            id="registerSpecialty"
-            name="specialty"
-            placeholder="Ej. Psicología clínica"
-          >
+          <div class="field-group">
+            <label for="registerSpecialty">Especialidad</label>
+            <input
+              type="text"
+              id="registerSpecialty"
+              name="specialty"
+              placeholder="Ej. Psicología clínica"
+            >
+          </div>
 
-          <label for="registerExperience">Años de experiencia</label>
-          <select id="registerExperience" name="experience">
-            <option value="">Selecciona tus años de experiencia</option>
-            <option value="1">1 año</option>
-            <option value="2">2 años</option>
-            <option value="3">3 años</option>
-            <option value="4">4 años</option>
-            <option value="5">5 años</option>
-            <option value="6">6 años</option>
-            <option value="7">7 años</option>
-            <option value="8">8 años</option>
-            <option value="9">9 años</option>
-            <option value="10">10 años</option>
-            <option value="11">11 años</option>
-            <option value="12">12 años</option>
-            <option value="13">13 años</option>
-            <option value="14">14 años</option>
-            <option value="15">15 años</option>
-            <option value="16">16 años</option>
-            <option value="17">17 años</option>
-            <option value="18">18 años</option>
-            <option value="19">19 años</option>
-            <option value="20">20+ años</option>
-          </select>
+          <div class="field-group">
+            <label for="registerExperience">Años de experiencia</label>
+            <input
+              type="number"
+              id="registerExperience"
+              name="experience"
+              placeholder="Ej. 5"
+              min="0"
+            >
+          </div>
 
-          <label for="registerInstitution">Institución de formación</label>
-          <input
-            type="text"
-            id="registerInstitution"
-            name="institution"
-            placeholder="Ej. Universidad Nacional"
-          >
+          <div class="field-group">
+            <label for="registerInstitution">Institución de formación</label>
+            <input
+              type="text"
+              id="registerInstitution"
+              name="institution"
+              placeholder="Ej. Universidad Nacional"
+            >
+          </div>
 
-          <label for="registerDocs">Documentos de respaldo</label>
-          <textarea
-            id="registerDocs"
-            name="docs"
-            placeholder="Describe los certificados o ingresa un enlace a tus documentos"
-            rows="3"
-          ></textarea>
+          <div class="field-group">
+            <label for="registerDocs">Documentos de respaldo</label>
+            <textarea
+              id="registerDocs"
+              name="docs"
+              placeholder="Describe los certificados o ingresa un enlace a tus documentos"
+              rows="3"
+            ></textarea>
+          </div>
         </div>
 
         <p id="registerRoleInfo" class="inline-note"></p>
