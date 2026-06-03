@@ -547,7 +547,7 @@
           <div class="psicologo-header">
             <div class="avatar">👩‍⚕️</div>
             <div class="psicologo-info">
-              <h3>${u.name}</h3>
+              <h3>Dr. ${u.name}</h3>
               <p>${specialtyText} · ${experienceText}</p>
             </div>
           </div>
@@ -556,7 +556,7 @@
           </div>
           <div class="disponibilidad">
             <strong>Disponible:</strong> Contactar para horarios<br>
-            Horario: Por definir
+            Horario: ${u.schedule ? u.schedule : 'Por definir'}
           </div>
           <button class="btn-agendar" onclick="abrirModal('${u.name.replace("'","\'")}')">Agendar cita</button>
         `;

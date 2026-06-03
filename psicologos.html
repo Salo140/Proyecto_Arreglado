@@ -50,6 +50,17 @@
       </article>
     </div>
 
+    <section class="horario-panel">
+      <h3>Mi horario</h3>
+      <p>Define aquí tu disponibilidad para que los clientes la vean al agendar.</p>
+      <div class="form-group">
+        <label for="scheduleInput">Horario (ej: Lunes 9:00-12:00; Miércoles 14:00-18:00)</label>
+        <textarea id="scheduleInput" rows="3" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;"></textarea>
+      </div>
+      <button id="saveScheduleBtn" class="btn-confirmar">Guardar horario</button>
+      <p id="scheduleSaved" style="display:none; color:var(--verde); margin-top:8px;">Horario guardado correctamente.</p>
+    </section>
+
     <section class="citas-panel">
       <h3>Citas asignadas</h3>
       <p id="citasMessage">Las citas se cargan desde la API local. Ejecuta <code>npm run dev</code> para verlas.</p>
@@ -64,6 +75,42 @@
   <script src="dashboard.js" defer></script>
 
   <script>
+    // Horario: permitir que el psicólogo guarde su disponibilidad
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+      if (!currentUser) return;
+
+      const scheduleInput = document.getElementById('scheduleInput');
+      const saveBtn = document.getElementById('saveScheduleBtn');
+      const savedMsg = document.getElementById('scheduleSaved');
+
+      if (scheduleInput && currentUser.schedule) {
+        scheduleInput.value = currentUser.schedule;
+      }
+
+      if (saveBtn) {
+        saveBtn.addEventListener('click', function() {
+          const schedule = scheduleInput.value.trim();
+          // Update ame_users in localStorage
+          const users = JSON.parse(localStorage.getItem('ame_users')) || [];
+          const updated = users.map(u => {
+            if (u.email === currentUser.email) {
+              u.schedule = schedule;
+            }
+            return u;
+          });
+          localStorage.setItem('ame_users', JSON.stringify(updated));
+
+          // Update currentUser in localStorage
+          currentUser.schedule = schedule;
+          localStorage.setItem('currentUser', JSON.stringify(currentUser));
+
+          // Show confirmation and trigger storage event for other tabs
+          if (savedMsg) { savedMsg.style.display = 'block'; setTimeout(()=> savedMsg.style.display='none', 2500); }
+        });
+      }
+    });
+
     // Actualizar nombre del psicólogo desde localStorage
     document.addEventListener('DOMContentLoaded', function() {
       const currentUser = JSON.parse(localStorage.getItem('currentUser'));
