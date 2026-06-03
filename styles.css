@@ -752,6 +752,53 @@ footer {
 
 .hidden { display: none !important; }
 
+/* AUTH TABS - Login/Registro */
+.auth-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.auth-tab-button {
+  padding: 12px 20px;
+  border: none;
+  background: transparent;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  color: var(--text-light);
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  position: relative;
+  bottom: -2px;
+}
+
+.auth-tab-button.active {
+  color: var(--green-dark);
+  border-bottom-color: var(--green);
+}
+
+.auth-tab-button:hover:not(.active) {
+  color: var(--text-mid);
+}
+
+.auth-tab-content {
+  display: none;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.auth-tab-content.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* ============================================
    DASHBOARD (cliente / admin / psicólogos)
    ============================================ */
