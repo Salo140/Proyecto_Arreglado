@@ -5,8 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mi Panel — Âme</title>
   <link rel="stylesheet" href="styles.css">
+  <script>
+    // Verificar que el usuario está autenticado
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) {
+      window.location.href = 'login.html';
+    }
+  </script>
 </head>
-<body data-role="cliente" data-cliente="Ana López">
+<body data-role="cliente" data-cliente="Usuario">
 
   <header class="navbar">
     <h1 class="logo">Âme</h1>
@@ -24,7 +31,7 @@
 
     <!-- Bienvenida -->
     <div class="dashboard-hero">
-      <h2>Bienvenida, Ana 👋</h2>
+      <h2 id="welcomeTitle">Bienvenida, Usuario 👋</h2>
       <p>Este es tu espacio personal de bienestar. Aquí encuentras recursos, apoyo de la comunidad y tu asistente IA.</p>
     </div>
 
@@ -74,7 +81,7 @@
         <!-- Mensajes -->
         <div id="ia-inline-messages" class="ia-inline-messages" role="log" aria-live="polite">
           <div class="ia-message ia-bot-message ia-welcome">
-            <p>👋 Hola Ana. Estoy aquí para escucharte. ¿Cómo te sientes hoy?</p>
+            <p id="iaChatGreeting">👋 Hola Usuario. Estoy aquí para escucharte. ¿Cómo te sientes hoy?</p>
           </div>
         </div>
 
@@ -126,6 +133,47 @@
         <div class="ia-inline-footer">
           <small>ℹ️ Este chat <strong>no reemplaza</strong> la terapia profesional. Si estás en crisis, usa el selector de país para ver líneas de emergencia.</small>
         </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Âme — Plataforma de bienestar emocional</p>
+  </footer>
+
+  <script src="dashboard.js" defer></script>
+  <script src="ia-chat.js" defer></script>
+  <script src="emergency-lines.js" defer></script>
+
+  <script>
+    // Actualizar nombre del usuario desde localStorage
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      
+      if (currentUser && currentUser.name) {
+        const firstName = currentUser.name.split(' ')[0];
+        
+        // Actualizar saludo principal
+        const welcomeTitle = document.getElementById('welcomeTitle');
+        if (welcomeTitle) {
+          welcomeTitle.textContent = `Bienvenida, ${firstName} 👋`;
+        }
+        
+        // Actualizar saludo del chat
+        const iaChatGreeting = document.getElementById('iaChatGreeting');
+        if (iaChatGreeting) {
+          iaChatGreeting.textContent = `👋 Hola ${firstName}. Estoy aquí para escucharte. ¿Cómo te sientes hoy?`;
+        }
+        
+        // Actualizar atributo data-cliente
+        document.body.setAttribute('data-cliente', currentUser.name);
+      }
+    });
+  </script>
+
+</body>
+</html>
 
       </div><!-- /.ia-inline-body -->
     </section><!-- /#ia-inline-section -->

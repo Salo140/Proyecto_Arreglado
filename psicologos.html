@@ -5,8 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Psicólogos — Âme</title>
   <link rel="stylesheet" href="styles.css">
+  <script>
+    // Verificar que el usuario está autenticado
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser || currentUser.role !== 'psicologos') {
+      window.location.href = 'login.html';
+    }
+  </script>
 </head>
-<body data-role="psicologos" data-psicologo="Dr. Rivera">
+<body data-role="psicologos" data-psicologo="Usuario">
 
   <header class="navbar">
     <h1 class="logo">Âme</h1>
@@ -20,7 +27,7 @@
 
   <main class="dashboard">
     <div class="dashboard-hero">
-      <h2>Bienvenido, Dr. Rivera 🩺</h2>
+      <h2 id="welcomeTitle">Bienvenido, Usuario 🩺</h2>
       <p>Accede a tus sesiones, pacientes y herramientas para un acompañamiento profesional.</p>
     </div>
 
@@ -51,6 +58,31 @@
   </main>
 
   <footer>
+    <p>&copy; 2026 Âme — Plataforma de bienestar emocional</p>
+  </footer>
+
+  <script src="dashboard.js" defer></script>
+
+  <script>
+    // Actualizar nombre del psicólogo desde localStorage
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      
+      if (currentUser && currentUser.name) {
+        // Actualizar saludo principal
+        const welcomeTitle = document.getElementById('welcomeTitle');
+        if (welcomeTitle) {
+          welcomeTitle.textContent = `Bienvenido, ${currentUser.name} 🩺`;
+        }
+        
+        // Actualizar atributo data-psicologo
+        document.body.setAttribute('data-psicologo', currentUser.name);
+      }
+    });
+  </script>
+
+</body>
+</html>
     <p>&copy; 2026 Âme — Todos los derechos reservados</p>
   </footer>
 

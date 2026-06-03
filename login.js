@@ -187,6 +187,17 @@ loginForm.addEventListener('submit', (e) => {
   }
 
   showMessage(`¡Bienvenido, ${roleConfig[role].label}! Redirigiendo...`, true);
+  
+  // Guardar usuario actual en localStorage
+  const currentUser = {
+    email: username,
+    name: result.user ? result.user.name : `${roleConfig[role].label} (Demo)`,
+    role: role,
+    isDemo: result.isDemo,
+    loginTime: new Date().toISOString(),
+  };
+  localStorage.setItem('currentUser', JSON.stringify(currentUser));
+  
   setTimeout(() => { window.location.href = roleConfig[role].page; }, 700);
 });
 
