@@ -691,10 +691,14 @@ footer {
   font-size: 0.88rem;
   font-weight: 600;
   color: var(--text-mid);
-  margin-bottom: -8px;
+  display: block;
+  margin-bottom: 6px;
 }
 
-.login-form input {
+.login-form input,
+.login-form textarea,
+.login-form select {
+  width: 100%;
   padding: 12px 16px;
   border: 1.5px solid #ddd;
   border-radius: var(--radius-sm);
@@ -702,6 +706,17 @@ footer {
   font-size: 0.95rem;
   transition: var(--transition);
   color: var(--text-dark);
+}
+
+.login-form textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.psychologist-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .login-form input:focus {
