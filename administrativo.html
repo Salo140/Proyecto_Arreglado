@@ -50,6 +50,12 @@
       </article>
     </div>
 
+    <section class="admin-panel">
+      <h3>Solicitudes de psicólogos</h3>
+      <p id="adminApprovalMessage">Revisa los documentos y certificados antes de aprobar el acceso.</p>
+      <div id="pendingPsychologists" class="admin-request-list"></div>
+    </section>
+
     <section class="citas-panel">
       <h3>Citas programadas</h3>
       <p id="citasMessage">Las citas se cargan desde la API local. Ejecuta <code>npm run dev</code> para verlas.</p>
@@ -73,13 +79,83 @@
         document.body.setAttribute('data-admin', currentUser.name || 'Administrativo');
       }
     });
+
+    function getRegisteredUsers() {
+      return JSON.parse(localStorage.getItem('ame_users')) || [];
+    }
+
+    function saveRegisteredUsers(users) {
+      localStorage.setItem('ame_users', JSON.stringify(users));
+    }
+
+    function renderPendingPsychologists() {
+      const container = document.getElementById('pendingPsychologists');
+      const users = getRegisteredUsers();
+      const pending = users.filter(user => user.role === 'psicologos' && user.status === 'pending');
+
+      if (!container) return;
+      if (pending.length === 0) {
+        container.innerHTML = '<div class="empty-state">No hay solicitudes de psicólogos pendientes en este momento.</div>';
+        return;
+      }
+
+      container.innerHTML = pending.map(user => `
+        <div class="admin-request-card">
+          <div class="admin-request-header">
+            <strong>${user.name}</strong>
+            <span class="status pending">Pendiente</span>
+          </div>
+          <div class="admin-request-body">
+            <p><strong>Correo:</strong> ${user.email}</p>
+            <p><strong>Especialidad:</strong> ${user.specialty || 'No especificada'}</p>
+            <p><strong>Certificado:</strong> ${user.certificate || 'No especificado'}</p>
+            <p><strong>Años de experiencia:</strong> ${user.experience || 'No especificado'}</p>
+            <p><strong>Institución:</strong> ${user.institution || 'No especificado'}</p>
+            <p><strong>Documentos:</strong> ${user.docs || 'No especificado'}</p>
+          </div>
+          <div class="admin-request-actions">
+            <button class="btn btn-approve" data-action="approve" data-id="${user.id}">Aprobar</button>
+            <button class="btn btn-reject" data-action="reject" data-id="${user.id}">Rechazar</button>
+          </div>
+        </div>
+      `).join('');
+
+      container.querySelectorAll('button[data-id]').forEach(button => {
+        button.addEventListener('click', (event) => {
+          const id = event.target.dataset.id;
+          const action = event.target.dataset.action;
+          handlePsychologistReview(id, action);
+        });
+      });
+    }
+
+    function handlePsychologistReview(id, action) {
+      const users = getRegisteredUsers();
+      const index = users.findIndex(user => user.id === id);
+      if (index === -1) return;
+
+      if (action === 'approve') {
+        users[index].verified = true;
+        users[index].status = 'active';
+        users[index].rejected = false;
+        users[index].reviewNotes = 'Aprobado por administrador';
+      } else if (action === 'reject') {
+        const reason = prompt('Agrega una razón breve para el rechazo (opcional):');
+        users[index].verified = false;
+        users[index].status = 'rejected';
+        users[index].rejected = true;
+        users[index].reviewNotes = reason ? reason.trim() : 'Rechazado por administrador';
+      }
+
+      saveRegisteredUsers(users);
+      renderPendingPsychologists();
+      alert(`Solicitud de psicólogo ${action === 'approve' ? 'aprobada' : 'rechazada'} correctamente.`);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      renderPendingPsychologists();
+    });
   </script>
 
-</body>
-</html>
-    <p>&copy; 2026 Âme — Todos los derechos reservados</p>
-  </footer>
-
-  <script src="dashboard.js" defer></script>
 </body>
 </html>

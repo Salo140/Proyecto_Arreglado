@@ -117,6 +117,49 @@
           required
         >
 
+        <div id="psychologistFields" class="psychologist-fields hidden">
+          <label for="registerCertificate">Número de certificado profesional</label>
+          <input
+            type="text"
+            id="registerCertificate"
+            name="certificate"
+            placeholder="Ej. CNPS-123456"
+          >
+
+          <label for="registerSpecialty">Especialidad</label>
+          <input
+            type="text"
+            id="registerSpecialty"
+            name="specialty"
+            placeholder="Ej. Psicología clínica"
+          >
+
+          <label for="registerExperience">Años de experiencia</label>
+          <input
+            type="number"
+            id="registerExperience"
+            name="experience"
+            placeholder="Ej. 5"
+            min="0"
+          >
+
+          <label for="registerInstitution">Institución de formación</label>
+          <input
+            type="text"
+            id="registerInstitution"
+            name="institution"
+            placeholder="Ej. Universidad Nacional"
+          >
+
+          <label for="registerDocs">Documentos de respaldo</label>
+          <textarea
+            id="registerDocs"
+            name="docs"
+            placeholder="Describe los certificados o ingresa un enlace a tus documentos"
+            rows="3"
+          ></textarea>
+        </div>
+
         <p id="registerRoleInfo" class="inline-note"></p>
 
         <div id="registerMessage" class="alert hidden"></div>

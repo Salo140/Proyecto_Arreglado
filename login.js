@@ -50,6 +50,12 @@ const registerNameInput  = document.getElementById('registerName');
 const registerEmailInput = document.getElementById('registerEmail');
 const registerPwdInput   = document.getElementById('registerPassword');
 const registerConfirmPwd = document.getElementById('registerConfirmPassword');
+const registerCertificateInput = document.getElementById('registerCertificate');
+const registerSpecialtyInput = document.getElementById('registerSpecialty');
+const registerExperienceInput = document.getElementById('registerExperience');
+const registerInstitutionInput = document.getElementById('registerInstitution');
+const registerDocsInput = document.getElementById('registerDocs');
+const psychologistFields = document.getElementById('psychologistFields');
 
 // ============= FUNCIONES PARA LOGIN =============
 function updateRole(role) {
@@ -77,8 +83,13 @@ function updateRegisterRole(role) {
   registerRoleButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.role === role));
   registerRole.value = role;
   const cfg = roleConfig[role];
-  const roleText = role === 'cliente' ? 'Cliente' : 'Psicólogo';
   registerRoleInfo.textContent = cfg.info;
+
+  if (role === 'psicologos') {
+    psychologistFields.classList.remove('hidden');
+  } else {
+    psychologistFields.classList.add('hidden');
+  }
 }
 
 function showRegisterMessage(text, isSuccess = false) {
@@ -119,14 +130,20 @@ function checkEmailExists(email) {
   return registeredUsers.some(user => user.email.toLowerCase() === email.toLowerCase());
 }
 
-function registerUser(name, email, password, role) {
+function registerUser(name, email, password, role, details = {}) {
+  const isPsychologist = role === 'psicologos';
   const newUser = {
     id: Date.now().toString(),
     name,
     email,
     password, // En producción, esto debería estar hasheado
     role,
+    verified: !isPsychologist,
+    status: isPsychologist ? 'pending' : 'active',
+    rejected: false,
+    reviewNotes: '',
     createdAt: new Date().toISOString(),
+    ...details,
   };
 
   registeredUsers.push(newUser);
@@ -148,11 +165,20 @@ function loginUser(email, password, role) {
     u.role === role
   );
 
-  if (user) {
-    return { isValid: true, isDemo: false, role, user };
+  if (!user) {
+    return { isValid: false };
   }
 
-  return { isValid: false };
+  if (role === 'psicologos') {
+    if (user.rejected) {
+      return { isValid: false, reason: 'rejected', user };
+    }
+    if (!user.verified) {
+      return { isValid: false, reason: 'pending', user };
+    }
+  }
+
+  return { isValid: true, isDemo: false, role, user };
 }
 
 // ============= EVENT LISTENERS - TABS AUTH =============
@@ -182,7 +208,13 @@ loginForm.addEventListener('submit', (e) => {
   const result = loginUser(username, password, role);
 
   if (!result.isValid) {
-    showMessage(`Usuario o contraseña incorrectos para ${roleConfig[role].label}.`);
+    if (result.reason === 'pending') {
+      showMessage('Tu cuenta de psicólogo está pendiente de aprobación. El administrador debe verificar tus documentos antes de permitir el acceso.');
+    } else if (result.reason === 'rejected') {
+      showMessage('Tu solicitud de psicólogo ha sido rechazada. Contacta con el administrador para más información.');
+    } else {
+      showMessage(`Usuario o contraseña incorrectos para ${roleConfig[role].label}.`);
+    }
     return;
   }
 
@@ -194,6 +226,7 @@ loginForm.addEventListener('submit', (e) => {
     name: result.user ? result.user.name : `${roleConfig[role].label} (Demo)`,
     role: role,
     isDemo: result.isDemo,
+    verified: result.user ? result.user.verified : true,
     loginTime: new Date().toISOString(),
   };
   localStorage.setItem('currentUser', JSON.stringify(currentUser));
@@ -242,13 +275,29 @@ registerForm.addEventListener('submit', (e) => {
     return;
   }
 
+  const registrationDetails = role === 'psicologos' ? {
+    certificate: registerCertificateInput.value.trim(),
+    specialty: registerSpecialtyInput.value.trim(),
+    experience: registerExperienceInput.value.trim(),
+    institution: registerInstitutionInput.value.trim(),
+    docs: registerDocsInput.value.trim(),
+  } : {};
+
+  if (role === 'psicologos') {
+    if (!registrationDetails.certificate || !registrationDetails.specialty || !registrationDetails.experience || !registrationDetails.institution) {
+      showRegisterMessage('Completa todos los campos de verificación para psicólogos.');
+      return;
+    }
+  }
+
   // Registrar usuario
   try {
-    const newUser = registerUser(name, email, password, role);
-    showRegisterMessage(
-      `¡Bienvenido ${name}! Tu cuenta ha sido creada exitosamente. Redirigiendo al login...`,
-      true
-    );
+    const newUser = registerUser(name, email, password, role, registrationDetails);
+    const msg = role === 'psicologos'
+      ? `¡Solicitud enviada! Tu registro será revisado por el administrador antes de activar tu cuenta.`
+      : `¡Bienvenido ${name}! Tu cuenta ha sido creada exitosamente. Redirigiendo al login...`;
+
+    showRegisterMessage(msg, true);
 
     setTimeout(() => {
       // Limpiar el formulario y cambiar a login
@@ -257,6 +306,11 @@ registerForm.addEventListener('submit', (e) => {
       // Rellenar el login con el email registrado
       usernameInput.value = email;
       updateRole(role);
+      if (role === 'psicologos') {
+        registerRoleButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.role === 'cliente'));
+        registerRole.value = 'cliente';
+        updateRegisterRole('cliente');
+      }
     }, 1500);
   } catch (error) {
     showRegisterMessage('Ocurrió un error al registrar la cuenta. Intenta de nuevo.');
