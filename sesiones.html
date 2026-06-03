@@ -578,6 +578,13 @@
     document.addEventListener('DOMContentLoaded', () => {
       renderApprovedPsychologists();
     });
+
+    // Re-render approved psychologists when ame_users changes in other tabs/windows
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'ame_users') {
+        renderApprovedPsychologists();
+      }
+    });
   </script>
  
   <script>
