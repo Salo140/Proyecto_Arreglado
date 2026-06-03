@@ -514,6 +514,60 @@
  
     </div>
   </div>
+
+  <script>
+    // Render approved psychologists from localStorage into the psicologos grid
+    function getRegisteredUsers() {
+      return JSON.parse(localStorage.getItem('ame_users')) || [];
+    }
+
+    function renderApprovedPsychologists() {
+      const grid = document.querySelector('#psicologos .psicologos-grid');
+      if (!grid) return;
+
+      const users = getRegisteredUsers().filter(u => u.role === 'psicologos' && u.verified === true && u.status === 'active');
+
+      if (!users || users.length === 0) {
+        // keep existing static content if no approved psychologists
+        return;
+      }
+
+      // clear current static cards
+      grid.innerHTML = '';
+
+      users.forEach(u => {
+        const card = document.createElement('div');
+        card.className = 'psicologo-card';
+        const avatar = u.name && u.name.split(' ')[0].slice(-1).toUpperCase() || '👤';
+        const experienceText = u.experience ? `${u.experience} años de experiencia` : 'Experiencia no especificada';
+        const specialtyText = u.specialty || '';
+
+        card.innerHTML = `
+          <div class="psicologo-header">
+            <div class="avatar">👩‍⚕️</div>
+            <div class="psicologo-info">
+              <h3>${u.name}</h3>
+              <p>${specialtyText} · ${experienceText}</p>
+            </div>
+          </div>
+          <div class="especialidades">
+            ${specialtyText ? `<span class="tag-esp">${specialtyText}</span>` : ''}
+          </div>
+          <div class="disponibilidad">
+            <strong>Disponible:</strong> Contactar para horarios<br>
+            Horario: Por definir
+          </div>
+          <button class="btn-agendar" onclick="abrirModal('${u.name.replace("'","\'")}')">Agendar cita</button>
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderApprovedPsychologists();
+    });
+  </script>
  
   <script>
     // ── Tabs ──
