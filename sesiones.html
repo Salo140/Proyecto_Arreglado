@@ -475,15 +475,8 @@
           <label>Hora disponible</label>
           <select id="horaCita">
             <option value="">-- Selecciona una hora --</option>
-            <option>08:00 am</option>
-            <option>09:00 am</option>
-            <option>10:00 am</option>
-            <option>11:00 am</option>
-            <option>02:00 pm</option>
-            <option>03:00 pm</option>
-            <option>04:00 pm</option>
-            <option>05:00 pm</option>
           </select>
+          <p id="horasBloqueadas" style="font-size:0.9rem;color:#b00;margin-top:8px; display:none;"></p>
         </div>
  
         <div class="form-group">
@@ -516,9 +509,73 @@
   </div>
 
   <script>
-    // Render approved psychologists from localStorage into the psicologos grid
+    const defaultHours = ['08:00 am', '09:00 am', '10:00 am', '11:00 am', '02:00 pm', '03:00 pm', '04:00 pm', '05:00 pm'];
+    let selectedPsychologo = null;
+
     function getRegisteredUsers() {
       return JSON.parse(localStorage.getItem('ame_users')) || [];
+    }
+
+    function getAppointments() {
+      return JSON.parse(localStorage.getItem('ame_appointments')) || [];
+    }
+
+    function saveAppointments(appointments) {
+      localStorage.setItem('ame_appointments', JSON.stringify(appointments));
+    }
+
+    function parseTimeValue(time) {
+      const [hourMinute, period] = time.split(' ');
+      const [hour, minute] = hourMinute.split(':').map(Number);
+      let hour24 = hour;
+      if (period.toLowerCase() === 'pm' && hour !== 12) hour24 += 12;
+      if (period.toLowerCase() === 'am' && hour === 12) hour24 = 0;
+      return { hour: hour24, minute };
+    }
+
+    function buildDateTime(date, time) {
+      const parts = parseTimeValue(time);
+      const dt = new Date(date + 'T00:00:00');
+      dt.setHours(parts.hour, parts.minute, 0, 0);
+      return dt;
+    }
+
+    function isBookingActive(booking) {
+      return buildDateTime(booking.date, booking.time) >= new Date();
+    }
+
+    function getReservedTimes(psicologoName, date) {
+      return getAppointments()
+        .filter(booking => booking.psicologoName === psicologoName && booking.date === date && isBookingActive(booking))
+        .map(booking => booking.time);
+    }
+
+    function renderAvailableTimes(psicologoName, date) {
+      const select = document.getElementById('horaCita');
+      const blockedText = document.getElementById('horasBloqueadas');
+      if (!select) return;
+
+      const reserved = getReservedTimes(psicologoName, date);
+      select.innerHTML = '<option value="">-- Selecciona una hora --</option>';
+      const blocked = [];
+
+      defaultHours.forEach(hour => {
+        const option = document.createElement('option');
+        option.value = hour;
+        option.textContent = hour;
+        if (reserved.includes(hour)) {
+          option.disabled = true;
+          blocked.push(hour);
+        }
+        select.appendChild(option);
+      });
+
+      if (blocked.length > 0) {
+        blockedText.style.display = 'block';
+        blockedText.textContent = `Horas no disponibles: ${blocked.join(', ')}`;
+      } else {
+        blockedText.style.display = 'none';
+      }
     }
 
     function renderApprovedPsychologists() {
@@ -528,18 +585,15 @@
       const users = getRegisteredUsers().filter(u => u.role === 'psicologos' && u.verified === true && u.status === 'active');
 
       if (!users || users.length === 0) {
-        // keep existing static content if no approved psychologists
         return;
       }
 
-      // preserve current static cards and render approved ones above them
       const staticContent = grid.innerHTML;
       grid.innerHTML = '';
 
       users.forEach(u => {
         const card = document.createElement('div');
         card.className = 'psicologo-card';
-        const avatar = u.name && u.name.split(' ')[0].slice(-1).toUpperCase() || '👤';
         const experienceText = u.experience ? `${u.experience} años de experiencia` : 'Experiencia no especificada';
         const specialtyText = u.specialty || '';
 
@@ -558,17 +612,15 @@
             <strong>Disponible:</strong> Contactar para horarios<br>
             Horario: ${u.schedule ? u.schedule : 'Por definir'}
           </div>
-          <button class="btn-agendar" onclick="abrirModal('${u.name.replace("'","\'")}')">Agendar cita</button>
+          <button class="btn-agendar" onclick="abrirModal('${u.name.replace(/'/g, "\\'")}')">Agendar cita</button>
         `;
 
         grid.appendChild(card);
       });
 
-      // append back the original static content below the approved cards
       if (staticContent) {
         const wrapper = document.createElement('div');
         wrapper.innerHTML = staticContent;
-        // move children from wrapper into grid
         while (wrapper.firstChild) {
           grid.appendChild(wrapper.firstChild);
         }
@@ -576,12 +628,19 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      const fechaInput = document.getElementById('fechaCita');
+      if (fechaInput) {
+        fechaInput.addEventListener('change', function() {
+          if (selectedPsychologo && this.value) {
+            renderAvailableTimes(selectedPsychologo, this.value);
+          }
+        });
+      }
       renderApprovedPsychologists();
     });
 
-    // Re-render approved psychologists when ame_users changes in other tabs/windows
     window.addEventListener('storage', (e) => {
-      if (e.key === 'ame_users') {
+      if (e.key === 'ame_users' || e.key === 'ame_appointments') {
         renderApprovedPsychologists();
       }
     });
@@ -598,22 +657,26 @@
  
     // ── Modal: abrir ──
     function abrirModal(nombrePsicologo) {
+      selectedPsychologo = nombrePsicologo;
       document.getElementById('nombrePsicologo').textContent = nombrePsicologo;
       document.getElementById('formularioCita').style.display = 'block';
       document.getElementById('confirmacionCita').classList.remove('show');
-      // Fecha mínima: hoy
-      document.getElementById('fechaCita').min = new Date().toISOString().split('T')[0];
+      const fechaInput = document.getElementById('fechaCita');
+      const today = new Date().toISOString().split('T')[0];
+      fechaInput.min = today;
+      fechaInput.value = today;
+      renderAvailableTimes(nombrePsicologo, today);
       document.getElementById('modalOverlay').classList.add('open');
     }
  
     // ── Modal: cerrar ──
     function cerrarModal() {
       document.getElementById('modalOverlay').classList.remove('open');
-      // Limpiar campos
       document.getElementById('fechaCita').value = '';
       document.getElementById('horaCita').value = '';
       document.getElementById('modalidadCita').value = '';
       document.getElementById('motivoCita').value = '';
+      document.getElementById('horasBloqueadas').style.display = 'none';
     }
  
     // ── Cerrar modal al hacer clic fuera ──
@@ -627,24 +690,52 @@
       const fecha      = document.getElementById('fechaCita').value;
       const hora       = document.getElementById('horaCita').value;
       const modalidad  = document.getElementById('modalidadCita').value;
+      const motivo     = document.getElementById('motivoCita').value.trim();
+      const reserved   = getReservedTimes(psicologo, fecha);
  
-      // Validación básica
       if (!fecha || !hora || !modalidad) {
         alert('Por favor completa la fecha, hora y modalidad.');
         return;
       }
+      if (reserved.includes(hora)) {
+        alert('Este horario ya está reservado. Por favor elige otro.');
+        return;
+      }
  
-      // Formatear fecha en español
+      const currentUser = JSON.parse(localStorage.getItem('currentUser')) || {};
+      const appointment = {
+        clienteName: currentUser.name || 'Cliente',
+        clienteEmail: currentUser.email || '',
+        psicologoName: psicologo,
+        psicologoEmail: null,
+        date: fecha,
+        time: hora,
+        modalidad: modalidad,
+        motivo: motivo,
+        createdAt: new Date().toISOString(),
+        status: 'scheduled'
+      };
+ 
+      const psicologos = getRegisteredUsers();
+      const matched = psicologos.find(u => `Dr. ${u.name}` === psicologo || `Dra. ${u.name}` === psicologo || u.name === psicologo);
+      if (matched) {
+        appointment.psicologoEmail = matched.email;
+      }
+ 
+      const appointments = getAppointments();
+      appointments.push(appointment);
+      saveAppointments(appointments);
+ 
       const fechaFormateada = new Date(fecha + 'T12:00:00').toLocaleDateString('es-CO', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
       });
  
-      // Mostrar confirmación
       document.getElementById('resumenCita').innerHTML =
         `Tu cita con <strong>${psicologo}</strong> ha sido agendada para el <strong>${fechaFormateada}</strong> a las <strong>${hora}</strong>.<br><br>Modalidad: <strong>${modalidad}</strong>.<br><br>Recibirás un recordatorio antes de tu sesión.`;
  
       document.getElementById('formularioCita').style.display = 'none';
       document.getElementById('confirmacionCita').classList.add('show');
+      renderAvailableTimes(psicologo, fecha);
     }
   </script>
  

@@ -63,7 +63,7 @@
 
     <section class="citas-panel">
       <h3>Citas asignadas</h3>
-      <p id="citasMessage">Las citas se cargan desde la API local. Ejecuta <code>npm run dev</code> para verlas.</p>
+      <p id="citasMessage">A continuación se muestran tus próximas citas agendadas.</p>
       <ul id="citasList" class="citas-list"></ul>
     </section>
   </main>
@@ -107,9 +107,76 @@
 
           // Show confirmation and trigger storage event for other tabs
           if (savedMsg) { savedMsg.style.display = 'block'; setTimeout(()=> savedMsg.style.display='none', 2500); }
+          loadAssignedAppointments();
         });
       }
+
+      loadAssignedAppointments();
+      window.addEventListener('storage', function(e) {
+        if (e.key === 'ame_appointments') {
+          loadAssignedAppointments();
+        }
+      });
     });
+
+    function getAppointments() {
+      return JSON.parse(localStorage.getItem('ame_appointments')) || [];
+    }
+
+    function buildDateTime(date, time) {
+      const [hourMinute, period] = time.split(' ');
+      const [hour, minute] = hourMinute.split(':').map(Number);
+      let hour24 = hour;
+      if (period.toLowerCase() === 'pm' && hour !== 12) hour24 += 12;
+      if (period.toLowerCase() === 'am' && hour === 12) hour24 = 0;
+      const dt = new Date(date + 'T00:00:00');
+      dt.setHours(hour24, minute, 0, 0);
+      return dt;
+    }
+
+    function isPastAppointment(appointment) {
+      return buildDateTime(appointment.date, appointment.time) < new Date();
+    }
+
+    function formatAppointmentDate(date) {
+      return new Date(date + 'T12:00:00').toLocaleDateString('es-CO', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+    }
+
+    function loadAssignedAppointments() {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+      const citasList = document.getElementById('citasList');
+      const citaMessage = document.getElementById('citasMessage');
+      if (!currentUser || !citasList || !citaMessage) return;
+
+      const upcoming = getAppointments()
+        .filter(a => a.psicologoEmail === currentUser.email && a.status === 'scheduled' && !isPastAppointment(a))
+        .sort((a, b) => buildDateTime(a.date, a.time) - buildDateTime(b.date, b.time));
+
+      citasList.innerHTML = '';
+      if (upcoming.length === 0) {
+        citaMessage.textContent = 'No tienes citas próximas. Cuando un cliente agende, aparecerán aquí.';
+        return;
+      }
+
+      citaMessage.textContent = 'Tus próximas sesiones reservadas:';
+      upcoming.forEach(appointment => {
+        const item = document.createElement('li');
+        item.style.marginBottom = '14px';
+        item.style.padding = '14px 18px';
+        item.style.border = '1px solid #e2e8f0';
+        item.style.borderRadius = '12px';
+        item.style.background = '#fff';
+        item.innerHTML = `
+          <strong>${appointment.clienteName}</strong><br>
+          <span>${formatAppointmentDate(appointment.date)} a las ${appointment.time}</span><br>
+          <span>Modalidad: ${appointment.modalidad}</span><br>
+          ${appointment.motivo ? `<span>Motivo: ${appointment.motivo}</span><br>` : ''}
+        `;
+        citasList.appendChild(item);
+      });
+    }
 
     // Actualizar nombre del psicólogo desde localStorage
     document.addEventListener('DOMContentLoaded', function() {
