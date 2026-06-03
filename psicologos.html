@@ -5,6 +5,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Psicólogos — Âme</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .schedule-row {
+      display: grid;
+      grid-template-columns: 1fr repeat(3, minmax(120px, 180px)) auto;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .schedule-row select,
+    .schedule-row input {
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: #fff;
+      font-size: 0.95rem;
+    }
+    .schedule-row button {
+      border: none;
+      border-radius: 10px;
+      background: #e63946;
+      color: white;
+      padding: 10px 14px;
+      cursor: pointer;
+    }
+    .schedule-row button:hover {
+      background: #c5303f;
+    }
+    .schedule-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .schedule-actions button {
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      background: #40916c;
+      color: white;
+    }
+    .schedule-actions button:hover {
+      background: #2d6a4f;
+    }
+  </style>
   <script>
     // Verificar que el usuario está autenticado y aprobado como psicólogo
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
@@ -52,10 +99,11 @@
 
     <section class="horario-panel">
       <h3>Mi horario</h3>
-      <p>Define aquí tu disponibilidad para que los clientes la vean al agendar.</p>
-      <div class="form-group">
-        <label for="scheduleInput">Horario (ej: Lunes 9:00-12:00; Miércoles 14:00-18:00)</label>
-        <textarea id="scheduleInput" rows="3" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;"></textarea>
+      <p>Elige los días y franjas de servicio que quieres publicar para los clientes.</p>
+      <div id="scheduleRows"></div>
+      <div class="schedule-actions">
+        <button id="addScheduleRowBtn" type="button">Agregar día</button>
+        <span style="color:#555; font-size:0.95rem;">Usa el botón para añadir más franjas.</span>
       </div>
       <button id="saveScheduleBtn" class="btn-confirmar">Guardar horario</button>
       <p id="scheduleSaved" style="display:none; color:var(--verde); margin-top:8px;">Horario guardado correctamente.</p>
@@ -80,37 +128,98 @@
       const currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
       if (!currentUser) return;
 
-      const scheduleInput = document.getElementById('scheduleInput');
       const saveBtn = document.getElementById('saveScheduleBtn');
       const savedMsg = document.getElementById('scheduleSaved');
+      const addRowBtn = document.getElementById('addScheduleRowBtn');
 
-      if (scheduleInput && currentUser.schedule) {
-        scheduleInput.value = currentUser.schedule;
+      function createScheduleRow(day = '', start = '', end = '') {
+        const row = document.createElement('div');
+        row.className = 'schedule-row';
+        row.innerHTML = `
+          <select class="day-select">
+            <option value="">Día</option>
+            <option>Lunes</option>
+            <option>Martes</option>
+            <option>Miércoles</option>
+            <option>Jueves</option>
+            <option>Viernes</option>
+            <option>Sábado</option>
+            <option>Domingo</option>
+          </select>
+          <input type="time" class="schedule-start" value="${start}" />
+          <input type="time" class="schedule-end" value="${end}" />
+          <button type="button" class="remove-row">Eliminar</button>
+        `;
+
+        const select = row.querySelector('.day-select');
+        const startInput = row.querySelector('.schedule-start');
+        const endInput = row.querySelector('.schedule-end');
+        const removeBtn = row.querySelector('.remove-row');
+
+        select.value = day;
+        removeBtn.addEventListener('click', () => row.remove());
+        return row;
       }
 
-      if (saveBtn) {
-        saveBtn.addEventListener('click', function() {
-          const schedule = scheduleInput.value.trim();
-          // Update ame_users in localStorage
-          const users = JSON.parse(localStorage.getItem('ame_users')) || [];
-          const updated = users.map(u => {
-            if (u.email === currentUser.email) {
-              u.schedule = schedule;
-            }
-            return u;
-          });
-          localStorage.setItem('ame_users', JSON.stringify(updated));
+      function parseScheduleText(text) {
+        if (!text) return [];
+        return text.split(';').map(part => {
+          const cleaned = part.trim();
+          const match = cleaned.match(/^(Lunes|Martes|Miércoles|Jueves|Viernes|Sábado|Domingo)\s+(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})$/i);
+          if (match) {
+            return { day: match[1], start: match[2], end: match[3] };
+          }
+          return null;
+        }).filter(Boolean);
+      }
 
-          // Update currentUser in localStorage
-          currentUser.schedule = schedule;
-          localStorage.setItem('currentUser', JSON.stringify(currentUser));
+      function buildScheduleText() {
+        const rows = Array.from(document.querySelectorAll('#scheduleRows .schedule-row'));
+        const values = rows.map(row => {
+          const day = row.querySelector('.day-select').value;
+          const start = row.querySelector('.schedule-start').value;
+          const end = row.querySelector('.schedule-end').value;
+          if (!day || !start || !end) return null;
+          return `${day} ${start}-${end}`;
+        }).filter(Boolean);
+        return values.join('; ');
+      }
 
-          // Show confirmation and trigger storage event for other tabs
-          if (savedMsg) { savedMsg.style.display = 'block'; setTimeout(()=> savedMsg.style.display='none', 2500); }
-          loadAssignedAppointments();
+      function loadScheduleRows() {
+        const rowsContainer = document.getElementById('scheduleRows');
+        rowsContainer.innerHTML = '';
+        const scheduleText = currentUser.schedule || '';
+        const parsed = parseScheduleText(scheduleText);
+        if (parsed.length > 0) {
+          parsed.forEach(item => rowsContainer.appendChild(createScheduleRow(item.day, item.start, item.end)));
+        } else {
+          rowsContainer.appendChild(createScheduleRow());
+          rowsContainer.appendChild(createScheduleRow());
+        }
+      }
+
+      const saveSchedule = () => {
+        const schedule = buildScheduleText();
+        const users = JSON.parse(localStorage.getItem('ame_users')) || [];
+        const updated = users.map(u => {
+          if (u.email === currentUser.email) {
+            u.schedule = schedule;
+          }
+          return u;
         });
-      }
+        localStorage.setItem('ame_users', JSON.stringify(updated));
+        currentUser.schedule = schedule;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        if (savedMsg) { savedMsg.style.display = 'block'; setTimeout(() => savedMsg.style.display = 'none', 2500); }
+        loadAssignedAppointments();
+      };
 
+      addRowBtn.addEventListener('click', () => {
+        document.getElementById('scheduleRows').appendChild(createScheduleRow());
+      });
+
+      saveBtn.addEventListener('click', saveSchedule);
+      loadScheduleRows();
       loadAssignedAppointments();
       window.addEventListener('storage', function(e) {
         if (e.key === 'ame_appointments') {
