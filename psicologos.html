@@ -21,6 +21,17 @@
       background: #fff;
       font-size: 0.95rem;
     }
+    .schedule-row .end-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f4f9f2;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      color: #333;
+    }
     .schedule-row button {
       border: none;
       border-radius: 10px;
@@ -132,6 +143,14 @@
       const savedMsg = document.getElementById('scheduleSaved');
       const addRowBtn = document.getElementById('addScheduleRowBtn');
 
+      const startOptions = ['06:00', '07:00', '08:00', '09:00', '10:00'];
+
+      function formatEndTime(start) {
+        const [hour, minute] = start.split(':').map(Number);
+        const endHour = hour + 8;
+        return `${endHour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      }
+
       function createScheduleRow(day = '', start = '', end = '') {
         const row = document.createElement('div');
         row.className = 'schedule-row';
@@ -146,18 +165,25 @@
             <option>Sábado</option>
             <option>Domingo</option>
           </select>
-          <input type="time" class="schedule-start" value="${start}" />
-          <input type="time" class="schedule-end" value="${end}" />
+          <select class="schedule-start">
+            <option value="">Inicio</option>
+            ${startOptions.map(hour => `<option value="${hour}">${hour}</option>`).join('')}
+          </select>
+          <div class="end-label">Fin: ${end || (start ? formatEndTime(start) : '--:--')}</div>
           <button type="button" class="remove-row">Eliminar</button>
         `;
 
         const select = row.querySelector('.day-select');
         const startInput = row.querySelector('.schedule-start');
-        const endInput = row.querySelector('.schedule-end');
+        const endLabel = row.querySelector('.end-label');
         const removeBtn = row.querySelector('.remove-row');
 
         select.value = day;
         removeBtn.addEventListener('click', () => row.remove());
+        startInput.value = start;
+        startInput.addEventListener('change', () => {
+          endLabel.textContent = `Fin: ${startInput.value ? formatEndTime(startInput.value) : '--:--'}`;
+        });
         return row;
       }
 
@@ -178,7 +204,7 @@
         const values = rows.map(row => {
           const day = row.querySelector('.day-select').value;
           const start = row.querySelector('.schedule-start').value;
-          const end = row.querySelector('.schedule-end').value;
+          const end = start ? formatEndTime(start) : '';
           if (!day || !start || !end) return null;
           return `${day} ${start}-${end}`;
         }).filter(Boolean);

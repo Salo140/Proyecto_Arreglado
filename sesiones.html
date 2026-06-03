@@ -533,6 +533,46 @@
       return { hour: hour24, minute };
     }
 
+    function parseScheduleText(text) {
+      if (!text) return [];
+      return text.split(';').map(part => {
+        const cleaned = part.trim();
+        const match = cleaned.match(/^(Lunes|Martes|Miércoles|Jueves|Viernes|Sábado|Domingo)\s+(\d{2}:\d{2})[-–](\d{2}:\d{2})$/i);
+        if (match) {
+          return { day: match[1], start: match[2], end: match[3] };
+        }
+        return null;
+      }).filter(Boolean);
+    }
+
+    function getWeekdayName(date) {
+      const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      return days[new Date(date).getDay()];
+    }
+
+    function getPsychologistSchedule(psicologoName) {
+      const users = getRegisteredUsers();
+      const normalized = psicologoName.replace(/^Dr\.\s*/i, '').replace(/^Dra\.\s*/i, '');
+      const user = users.find(u => u.name === normalized);
+      return user ? parseScheduleText(user.schedule) : [];
+    }
+
+    function getShiftForDate(psicologoName, date) {
+      const weekday = getWeekdayName(date);
+      return getPsychologistSchedule(psicologoName).find(shift => shift.day === weekday);
+    }
+
+    function buildHourOptions(start, end) {
+      const timeOptions = [];
+      const [startHour] = start.split(':').map(Number);
+      const [endHour] = end.split(':').map(Number);
+      for (let hour = startHour; hour < endHour; hour += 1) {
+        const formatted = `${hour.toString().padStart(2, '0')}:00`;
+        timeOptions.push(formatted);
+      }
+      return timeOptions;
+    }
+
     function buildDateTime(date, time) {
       const parts = parseTimeValue(time);
       const dt = new Date(date + 'T00:00:00');
@@ -554,12 +594,18 @@
       const select = document.getElementById('horaCita');
       const blockedText = document.getElementById('horasBloqueadas');
       if (!select) return;
-
-      const reserved = getReservedTimes(psicologoName, date);
+      const shift = getShiftForDate(psicologoName, date);
       select.innerHTML = '<option value="">-- Selecciona una hora --</option>';
       const blocked = [];
+      if (!shift) {
+        blockedText.style.display = 'block';
+        blockedText.textContent = 'No hay disponibilidad registrada para este día.';
+        return;
+      }
 
-      defaultHours.forEach(hour => {
+      const hours = buildHourOptions(shift.start, shift.end);
+      const reserved = getReservedTimes(psicologoName, date);
+      hours.forEach(hour => {
         const option = document.createElement('option');
         option.value = hour;
         option.textContent = hour;
