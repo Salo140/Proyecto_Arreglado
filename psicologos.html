@@ -1,24 +1,68 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Psicólogos — Âme</title>
-  <link rel="stylesheet" href="styles.css">
-  <style>
-    .schedule-row {
+        `
+        citasList.appendChild(item);
+        const btn = item.querySelector('.cancel-btn');
+        if (btn) btn.addEventListener('click', function() {
+          const id = this.getAttribute('data-id');
+          const reason = prompt('Motivo de la solicitud de cancelación (opcional):');
+          requestCancellation(id, reason ? reason.trim() : '');
+        });
       display: grid;
       grid-template-columns: 1fr repeat(3, minmax(120px, 180px)) auto;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 12px;
+
+    function getNotifications() {
+      return JSON.parse(localStorage.getItem('ame_notifications')) || [];
     }
-    .schedule-row select,
-    .schedule-row input {
-      padding: 10px 12px;
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      background: #fff;
+
+    function saveNotifications(notes) {
+      localStorage.setItem('ame_notifications', JSON.stringify(notes));
+    }
+
+    function addNotification(note) {
+      const notes = getNotifications();
+      note.id = 'n_' + Date.now();
+      note.createdAt = new Date().toISOString();
+      note.read = false;
+      notes.push(note);
+      saveNotifications(notes);
+      window.dispatchEvent(new Event('storage'));
+      return note;
+    }
+
+    function requestCancellation(appointmentId, reason) {
+      const appointments = getAppointments();
+      const idx = appointments.findIndex(a => a.id === appointmentId);
+      if (idx === -1) return alert('No se encontró la cita.');
+      appointments[idx].status = 'cancel_requested';
+      appointments[idx].cancelRequestBy = 'psicologo';
+      appointments[idx].cancelRequestAt = new Date().toISOString();
+      appointments[idx].cancelRequestReason = reason || '';
+      localStorage.setItem('ame_appointments', JSON.stringify(appointments));
+
+      // notify admin and client
+      addNotification({ recipientRole: 'administrativo', title: 'Solicitud de cancelación', message: `El psicólogo solicitó cancelar la cita de ${appointments[idx].clienteName} el ${appointments[idx].date} a las ${appointments[idx].time}.`, type: 'cancel_request', relatedAppointmentId: appointmentId, fromEmail: (JSON.parse(localStorage.getItem('currentUser')) || {}).email });
+      if (appointments[idx].clienteEmail) addNotification({ recipientEmail: appointments[idx].clienteEmail, title: 'Solicitud de cancelación', message: `El psicólogo solicitó cancelar tu cita el ${appointments[idx].date} a las ${appointments[idx].time}. Será revisada por el administrador.`, type: 'cancel_request', relatedAppointmentId: appointmentId });
+
+      loadAssignedAppointments();
+      renderNotifications();
+      alert('Solicitud de cancelación enviada al administrador.');
+    }
+
+    function renderNotifications() {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser')) || {};
+      const list = document.getElementById('notificationsList');
+      if (!list) return;
+      const notes = getNotifications().filter(n => (n.recipientRole && n.recipientRole === currentUser.role) || n.recipientEmail === currentUser.email);
+      if (notes.length === 0) { list.innerHTML = '<li class="empty-state">No hay notificaciones.</li>'; return; }
+      list.innerHTML = '';
+      notes.forEach(n => {
+        const li = document.createElement('li');
+        li.style.padding = '10px'; li.style.border = '1px solid #eee'; li.style.marginBottom = '8px'; li.style.borderRadius = '8px';
+        li.innerHTML = `<strong>${n.title}</strong><br>${n.message}<br><small>${new Date(n.createdAt).toLocaleString()}</small>`;
+        list.appendChild(li);
+      });
+    }
       font-size: 0.95rem;
     }
     .schedule-row .end-label {
@@ -88,6 +132,11 @@
       <h2 id="welcomeTitle">Bienvenido, Usuario 🩺</h2>
       <p>Accede a tus sesiones, pacientes y herramientas para un acompañamiento profesional.</p>
     </div>
+
+    <section class="notifications-panel">
+      <h3>Notificaciones</h3>
+      <ul id="notificationsList" class="citas-list"></ul>
+    </section>
 
     <div class="dashboard-grid">
       <article class="info-card">
@@ -258,19 +307,31 @@
       return JSON.parse(localStorage.getItem('ame_appointments')) || [];
     }
 
-    function buildDateTime(date, time) {
+    function parseTimeValue(time) {
+      if (!time) return { hour: 0, minute: 0 };
+      if (time.indexOf(' ') === -1) {
+        const [hour, minute] = time.split(':').map(Number);
+        return { hour: hour, minute: minute || 0 };
+      }
       const [hourMinute, period] = time.split(' ');
       const [hour, minute] = hourMinute.split(':').map(Number);
       let hour24 = hour;
       if (period.toLowerCase() === 'pm' && hour !== 12) hour24 += 12;
       if (period.toLowerCase() === 'am' && hour === 12) hour24 = 0;
+      return { hour: hour24, minute };
+    }
+
+    function buildDateTime(date, time) {
+      const parts = parseTimeValue(time);
       const dt = new Date(date + 'T00:00:00');
-      dt.setHours(hour24, minute, 0, 0);
+      dt.setHours(parts.hour, parts.minute, 0, 0);
       return dt;
     }
 
     function isPastAppointment(appointment) {
-      return buildDateTime(appointment.date, appointment.time) < new Date();
+      const start = buildDateTime(appointment.date, appointment.time || appointment.start);
+      const end = appointment.endTime ? buildDateTime(appointment.date, appointment.endTime) : new Date(start.getTime() + 60 * 60 * 1000);
+      return end < new Date();
     }
 
     function formatAppointmentDate(date) {
@@ -305,12 +366,28 @@
         item.style.background = '#fff';
         item.innerHTML = `
           <strong>${appointment.clienteName}</strong><br>
-          <span>${formatAppointmentDate(appointment.date)} a las ${appointment.time}</span><br>
+          <span>${formatAppointmentDate(appointment.date)} desde las ${appointment.time} hasta ${appointment.endTime || ''}</span><br>
           <span>Modalidad: ${appointment.modalidad}</span><br>
           ${appointment.motivo ? `<span>Motivo: ${appointment.motivo}</span><br>` : ''}
+          <div style="margin-top:8px"><button class="cancel-btn" data-id="${appointment.id}" style="background:#e63946;color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;">Solicitar cancelación</button></div>
         `;
         citasList.appendChild(item);
+        const btn = item.querySelector('.cancel-btn');
+        if (btn) btn.addEventListener('click', function() {
+          const id = this.getAttribute('data-id');
+          if (confirm('¿Cancelar esta cita?')) cancelAppointment(id);
+        });
       });
+    }
+
+    function cancelAppointment(id) {
+      const appointments = getAppointments();
+      const idx = appointments.findIndex(a => a.id === id);
+      if (idx === -1) return alert('No se encontró la cita.');
+      appointments[idx].status = 'cancelled';
+      localStorage.setItem('ame_appointments', JSON.stringify(appointments));
+      loadAssignedAppointments();
+      window.dispatchEvent(new Event('storage'));
     }
 
     // Actualizar nombre del psicólogo desde localStorage

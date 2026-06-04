@@ -451,6 +451,17 @@
     </div>
  
   </section>
+
+  <section class="notifications-panel" style="padding:20px; max-width:900px; margin:20px auto 0;">
+    <h3>Notificaciones</h3>
+    <ul id="notificationsList" class="citas-list"></ul>
+  </section>
+
+  <section class="mis-citas" style="padding:20px; max-width:900px; margin:20px auto;">
+    <h3>Mis citas</h3>
+    <p id="misCitasMessage">Tus próximas citas aparecen aquí.</p>
+    <ul id="misCitasList" class="citas-list"></ul>
+  </section>
  
   <footer>
     <p>&copy; 2026 Âme - Todos los derechos reservados</p>
@@ -525,6 +536,12 @@
     }
 
     function parseTimeValue(time) {
+      // Accept either 24h 'HH:MM' or 'HH:MM am/pm'
+      if (!time) return { hour: 0, minute: 0 };
+      if (time.indexOf(' ') === -1) {
+        const [hour, minute] = time.split(':').map(Number);
+        return { hour: hour, minute: minute || 0 };
+      }
       const [hourMinute, period] = time.split(' ');
       const [hour, minute] = hourMinute.split(':').map(Number);
       let hour24 = hour;
@@ -581,13 +598,32 @@
     }
 
     function isBookingActive(booking) {
-      return buildDateTime(booking.date, booking.time) >= new Date();
+      const start = buildDateTime(booking.date, booking.time || booking.start);
+      const end = booking.endTime ? buildDateTime(booking.date, booking.endTime) : new Date(start.getTime() + 60 * 60 * 1000);
+      return end >= new Date();
     }
 
-    function getReservedTimes(psicologoName, date) {
-      return getAppointments()
-        .filter(booking => booking.psicologoName === psicologoName && booking.date === date && isBookingActive(booking))
-        .map(booking => booking.time);
+    function addOneHour(timeStr) {
+      const [hh, mm] = timeStr.split(':').map(Number);
+      const d = new Date();
+      d.setHours(hh + 1, mm || 0, 0, 0);
+      return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+    }
+
+    function timesOverlap(startA, endA, startB, endB) {
+      return startA < endB && startB < endA;
+    }
+
+    function isSlotAvailable(psicologoName, date, candidateStart) {
+      const appointments = getAppointments().filter(b => b.psicologoName === psicologoName && b.date === date && b.status === 'scheduled');
+      const candStart = buildDateTime(date, candidateStart);
+      const candEnd = new Date(candStart.getTime() + 60 * 60 * 1000);
+      for (const ap of appointments) {
+        const apStart = buildDateTime(ap.date, ap.time || ap.start);
+        const apEnd = ap.endTime ? buildDateTime(ap.date, ap.endTime) : new Date(apStart.getTime() + 60 * 60 * 1000);
+        if (timesOverlap(candStart, candEnd, apStart, apEnd)) return false;
+      }
+      return true;
     }
 
     function renderAvailableTimes(psicologoName, date) {
@@ -604,12 +640,11 @@
       }
 
       const hours = buildHourOptions(shift.start, shift.end);
-      const reserved = getReservedTimes(psicologoName, date);
       hours.forEach(hour => {
         const option = document.createElement('option');
         option.value = hour;
         option.textContent = hour;
-        if (reserved.includes(hour)) {
+        if (!isSlotAvailable(psicologoName, date, hour)) {
           option.disabled = true;
           blocked.push(hour);
         }
@@ -691,6 +726,73 @@
       }
     });
   </script>
+  <script>
+    // Notifications helpers for clients
+    function getNotifications() {
+      return JSON.parse(localStorage.getItem('ame_notifications')) || [];
+    }
+    function saveNotifications(notes) { localStorage.setItem('ame_notifications', JSON.stringify(notes)); }
+    function addNotification(note) {
+      const notes = getNotifications();
+      note.id = 'n_' + Date.now();
+      note.createdAt = new Date().toISOString();
+      note.read = false;
+      notes.push(note);
+      saveNotifications(notes);
+      window.dispatchEvent(new Event('storage'));
+    }
+
+    function renderNotifications() {
+      const list = document.getElementById('notificationsList');
+      const currentUser = JSON.parse(localStorage.getItem('currentUser')) || {};
+      if (!list) return;
+      const notes = getNotifications().filter(n => (n.recipientRole && n.recipientRole === currentUser.role) || n.recipientEmail === currentUser.email);
+      if (notes.length === 0) { list.innerHTML = '<li class="empty-state">No hay notificaciones.</li>'; return; }
+      list.innerHTML = '';
+      notes.forEach(n => {
+        const li = document.createElement('li'); li.style.padding='10px'; li.style.border='1px solid #eee'; li.style.marginBottom='8px'; li.style.borderRadius='8px';
+        li.innerHTML = `<strong>${n.title}</strong><br>${n.message}<br><small>${new Date(n.createdAt).toLocaleString()}</small>`;
+        list.appendChild(li);
+      });
+    }
+
+    function renderClientAppointments() {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser')) || {};
+      const list = document.getElementById('misCitasList');
+      const msg = document.getElementById('misCitasMessage');
+      if (!list || !currentUser) return;
+      const upcoming = getAppointments().filter(a => a.clienteEmail === currentUser.email && a.status === 'scheduled').sort((a,b)=> buildDateTime(a.date,a.time)-buildDateTime(b.date,b.time));
+      if (upcoming.length === 0) { list.innerHTML = ''; msg.textContent = 'No tienes citas próximas.'; return; }
+      msg.textContent = 'Tus próximas citas:'; list.innerHTML = '';
+      upcoming.forEach(ap => {
+        const li = document.createElement('li'); li.style.padding='12px'; li.style.border='1px solid #eee'; li.style.marginBottom='8px'; li.style.borderRadius='10px';
+        li.innerHTML = `<strong>${ap.psicologoName}</strong><br>${new Date(ap.date+'T12:00:00').toLocaleDateString()} a las ${ap.time} - Hasta ${ap.endTime || ''}<br><small>Modalidad: ${ap.modalidad}</small>`;
+        const btn = document.createElement('button'); btn.textContent = 'Solicitar cancelación'; btn.style.marginTop='8px'; btn.addEventListener('click', ()=>{
+          const reason = prompt('Motivo de la cancelación (opcional):'); requestCancellationClient(ap.id, reason?reason.trim(): '');
+        });
+        li.appendChild(btn); list.appendChild(li);
+      });
+    }
+
+    function requestCancellationClient(appointmentId, reason) {
+      const appointments = getAppointments();
+      const idx = appointments.findIndex(a => a.id === appointmentId);
+      if (idx === -1) return alert('Cita no encontrada.');
+      appointments[idx].status = 'cancel_requested';
+      appointments[idx].cancelRequestBy = 'cliente';
+      appointments[idx].cancelRequestAt = new Date().toISOString();
+      appointments[idx].cancelRequestReason = reason || '';
+      saveAppointments(appointments);
+      // notify admin and psicologo
+      addNotification({ recipientRole: 'administrativo', title: 'Solicitud de cancelación', message: `El cliente solicitó cancelar la cita con ${appointments[idx].psicologoName} el ${appointments[idx].date} a las ${appointments[idx].time}.`, type: 'cancel_request', relatedAppointmentId: appointmentId, fromEmail: (JSON.parse(localStorage.getItem('currentUser')) || {}).email });
+      if (appointments[idx].psicologoEmail) addNotification({ recipientEmail: appointments[idx].psicologoEmail, title: 'Solicitud de cancelación', message: `El cliente solicitó cancelar la cita del ${appointments[idx].date} a las ${appointments[idx].time}.`, type: 'cancel_request', relatedAppointmentId: appointmentId });
+      renderClientAppointments(); renderNotifications();
+      alert('Solicitud de cancelación enviada al administrador.');
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){ renderClientAppointments(); renderNotifications(); });
+    window.addEventListener('storage', function(e){ if (e.key === 'ame_notifications' || e.key === 'ame_appointments') { renderClientAppointments(); renderNotifications(); } });
+  </script>
  
   <script>
     // ── Tabs ──
@@ -737,25 +839,27 @@
       const hora       = document.getElementById('horaCita').value;
       const modalidad  = document.getElementById('modalidadCita').value;
       const motivo     = document.getElementById('motivoCita').value.trim();
-      const reserved   = getReservedTimes(psicologo, fecha);
  
       if (!fecha || !hora || !modalidad) {
         alert('Por favor completa la fecha, hora y modalidad.');
         return;
       }
-      if (reserved.includes(hora)) {
-        alert('Este horario ya está reservado. Por favor elige otro.');
+      if (!isSlotAvailable(psicologo, fecha, hora)) {
+        alert('Este horario ya está reservado o se solapa con otra sesión. Por favor elige otro.');
         return;
       }
  
       const currentUser = JSON.parse(localStorage.getItem('currentUser')) || {};
       const appointment = {
+        id: 'ap_' + Date.now(),
         clienteName: currentUser.name || 'Cliente',
         clienteEmail: currentUser.email || '',
         psicologoName: psicologo,
         psicologoEmail: null,
         date: fecha,
         time: hora,
+        endTime: addOneHour(hora),
+        durationMinutes: 60,
         modalidad: modalidad,
         motivo: motivo,
         createdAt: new Date().toISOString(),
@@ -777,11 +881,13 @@
       });
  
       document.getElementById('resumenCita').innerHTML =
-        `Tu cita con <strong>${psicologo}</strong> ha sido agendada para el <strong>${fechaFormateada}</strong> a las <strong>${hora}</strong>.<br><br>Modalidad: <strong>${modalidad}</strong>.<br><br>Recibirás un recordatorio antes de tu sesión.`;
+        `Tu cita con <strong>${psicologo}</strong> ha sido agendada para el <strong>${fechaFormateada}</strong> desde las <strong>${hora}</strong> hasta las <strong>${appointment.endTime}</strong>.<br><br>Modalidad: <strong>${modalidad}</strong>.<br><br>Recibirás un recordatorio antes de tu sesión.`;
  
       document.getElementById('formularioCita').style.display = 'none';
       document.getElementById('confirmacionCita').classList.add('show');
       renderAvailableTimes(psicologo, fecha);
+      renderClientAppointments();
+      renderNotifications();
     }
   </script>
  
