@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "psicologoEmail": "rivera@ame.com",
+    "citaId": 5,
+    "paciente": "María Torres Gómez",
+    "fechaCita": "2026-06-02",
+    "horaCita": "09:00",
+    "motivoCancelacion": "Emergencia personal",
+    "comentarios": "Surgió una situación familiar urgente.",
+    "fechaSolicitud": "2026-06-01",
+    "estado": "pendiente",
+    "fechaResolucion": null,
+    "razonRechazo": null
+  },
+  {
+    "id": 2,
+    "psicologoEmail": "rivera@ame.com",
+    "citaId": 8,
+    "paciente": "David Contreras Pérez",
+    "fechaCita": "2026-06-05",
+    "horaCita": "14:00",
+    "motivoCancelacion": "Problemas de agenda",
+    "comentarios": "Conflicto con otra actividad importante.",
+    "fechaSolicitud": "2026-05-31",
+    "estado": "aprobada",
+    "fechaResolucion": "2026-05-31",
+    "razonRechazo": null
+  },
+  {
+    "id": 3,
+    "psicologoEmail": "jimenez@ame.com",
+    "citaId": 12,
+    "paciente": "Elena Rodríguez Sánchez",
+    "fechaCita": "2026-06-08",
+    "horaCita": "10:30",
+    "motivoCancelacion": "Paciente no asistirá",
+    "comentarios": "La paciente informó que se siente mejor y prefiere pausar sesiones.",
+    "fechaSolicitud": "2026-06-02",
+    "estado": "rechazada",
+    "fechaResolucion": "2026-06-02",
+    "razonRechazo": "No se justifica cancelación. Se sugiere reagendar."
+  }
+]

@@ -1,0 +1,86 @@
+[
+  {
+    "id": 1,
+    "tipo": "administracion",
+    "remitente": {
+      "nombre": "Administrador",
+      "rol": "administrativo"
+    },
+    "destinatario": {
+      "nombre": "Dr. Rivera",
+      "rol": "psicologos"
+    },
+    "asunto": "Nueva paciente registrada",
+    "mensaje": "Se ha registrado una nueva paciente en el sistema. Por favor revisa su perfil.",
+    "fecha": "2026-06-01",
+    "hora": "09:30",
+    "leido": true,
+    "canal": "administracion"
+  },
+  {
+    "id": 2,
+    "tipo": "paciente",
+    "remitente": {
+      "nombre": "Ana López García",
+      "rol": "cliente"
+    },
+    "destinatario": {
+      "nombre": "Dr. Rivera",
+      "rol": "psicologos"
+    },
+    "asunto": "Pregunta sobre ejercicios",
+    "mensaje": "Dr. Rivera, tengo una duda sobre los ejercicios de respiración. ¿Puedo practicarlos en cualquier momento?",
+    "fecha": "2026-06-02",
+    "hora": "14:20",
+    "leido": false,
+    "canal": "paciente",
+    "estado": "pendiente"
+  },
+  {
+    "id": 3,
+    "tipo": "administracion",
+    "remitente": {
+      "nombre": "Dr. Rivera",
+      "rol": "psicologos"
+    },
+    "destinatario": {
+      "nombre": "Administrador",
+      "rol": "administrativo"
+    },
+    "asunto": "Solicitud de cambio de horario",
+    "mensaje": "Por favor, necesito cambiar mi disponibilidad los jueves próximos debido a una conferencia.",
+    "fecha": "2026-05-30",
+    "hora": "16:45",
+    "leido": true,
+    "canal": "administracion"
+  },
+  {
+    "id": 4,
+    "tipo": "notificacion",
+    "asunto": "Recordatorio: Cita próxima en 1 hora",
+    "mensaje": "Tienes una cita con Ana López García en 1 hora",
+    "fecha": "2026-06-03",
+    "hora": "08:30",
+    "leido": true,
+    "canal": "sistema"
+  },
+  {
+    "id": 5,
+    "tipo": "paciente",
+    "remitente": {
+      "nombre": "Carlos Mendoza Ruiz",
+      "rol": "cliente"
+    },
+    "destinatario": {
+      "nombre": "Dr. Rivera",
+      "rol": "psicologos"
+    },
+    "asunto": "Confirmación de cita",
+    "mensaje": "¿Está confirmada mi cita del próximo lunes a las 10:00?",
+    "fecha": "2026-06-04",
+    "hora": "11:15",
+    "leido": false,
+    "canal": "paciente",
+    "estado": "pendiente"
+  }
+]
