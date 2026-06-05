@@ -161,8 +161,28 @@ document.addEventListener('DOMContentLoaded', () => {
     citasMsg.textContent = `Mostrando ${filtered.length} cita(s) para el perfil ${roleLabels[role] || 'seleccionado'}.`;
   }
 
+  function getLocalAppointments() {
+    const stored = JSON.parse(localStorage.getItem('ame_appointments')) || [];
+    return stored.map(a => ({
+      ...a,
+      cliente: a.cliente || a.clienteName || '',
+      psicologo: a.psicologo || a.psicologoName || '',
+      fecha: a.fecha || a.date || '',
+      hora: a.hora || a.time || '',
+      motivo: a.motivo || a.motivo || '',
+      disponible: typeof a.disponible === 'boolean' ? a.disponible : a.status === 'scheduled',
+    }));
+  }
+
   async function loadCitas() {
     const useApi = isLocalHost();
+    const localCitas = getLocalAppointments();
+
+    if (!useApi && localCitas.length > 0) {
+      renderCitas(localCitas);
+      citasMsg.textContent += ' (Mostrando citas guardadas localmente).';
+      return;
+    }
 
     if (useApi) {
       try {
@@ -179,6 +199,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       } catch (err) {
         console.warn('[Dashboard] API local no disponible:', err.message);
+        if (localCitas.length > 0) {
+          renderCitas(localCitas);
+          citasMsg.textContent += ' (No se pudo conectar con la API local; mostrando citas guardadas localmente).';
+          return;
+        }
       }
     }
 
