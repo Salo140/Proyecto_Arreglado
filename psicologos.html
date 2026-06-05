@@ -1,68 +1,23 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
-        `
-        citasList.appendChild(item);
-        const btn = item.querySelector('.cancel-btn');
-        if (btn) btn.addEventListener('click', function() {
-          const id = this.getAttribute('data-id');
-          const reason = prompt('Motivo de la solicitud de cancelación (opcional):');
-          requestCancellation(id, reason ? reason.trim() : '');
-        });
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Psicólogos - Âme</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .schedule-row {
       display: grid;
-      grid-template-columns: 1fr repeat(3, minmax(120px, 180px)) auto;
-
-    function getNotifications() {
-      return JSON.parse(localStorage.getItem('ame_notifications')) || [];
+      grid-template-columns: 1fr repeat(2, minmax(120px, 180px)) auto;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
     }
-
-    function saveNotifications(notes) {
-      localStorage.setItem('ame_notifications', JSON.stringify(notes));
-    }
-
-    function addNotification(note) {
-      const notes = getNotifications();
-      note.id = 'n_' + Date.now();
-      note.createdAt = new Date().toISOString();
-      note.read = false;
-      notes.push(note);
-      saveNotifications(notes);
-      window.dispatchEvent(new Event('storage'));
-      return note;
-    }
-
-    function requestCancellation(appointmentId, reason) {
-      const appointments = getAppointments();
-      const idx = appointments.findIndex(a => a.id === appointmentId);
-      if (idx === -1) return alert('No se encontró la cita.');
-      appointments[idx].status = 'cancel_requested';
-      appointments[idx].cancelRequestBy = 'psicologo';
-      appointments[idx].cancelRequestAt = new Date().toISOString();
-      appointments[idx].cancelRequestReason = reason || '';
-      localStorage.setItem('ame_appointments', JSON.stringify(appointments));
-
-      // notify admin and client
-      addNotification({ recipientRole: 'administrativo', title: 'Solicitud de cancelación', message: `El psicólogo solicitó cancelar la cita de ${appointments[idx].clienteName} el ${appointments[idx].date} a las ${appointments[idx].time}.`, type: 'cancel_request', relatedAppointmentId: appointmentId, fromEmail: (JSON.parse(localStorage.getItem('currentUser')) || {}).email });
-      if (appointments[idx].clienteEmail) addNotification({ recipientEmail: appointments[idx].clienteEmail, title: 'Solicitud de cancelación', message: `El psicólogo solicitó cancelar tu cita el ${appointments[idx].date} a las ${appointments[idx].time}. Será revisada por el administrador.`, type: 'cancel_request', relatedAppointmentId: appointmentId });
-
-      loadAssignedAppointments();
-      renderNotifications();
-      alert('Solicitud de cancelación enviada al administrador.');
-    }
-
-    function renderNotifications() {
-      const currentUser = JSON.parse(localStorage.getItem('currentUser')) || {};
-      const list = document.getElementById('notificationsList');
-      if (!list) return;
-      const notes = getNotifications().filter(n => (n.recipientRole && n.recipientRole === currentUser.role) || n.recipientEmail === currentUser.email);
-      if (notes.length === 0) { list.innerHTML = '<li class="empty-state">No hay notificaciones.</li>'; return; }
-      list.innerHTML = '';
-      notes.forEach(n => {
-        const li = document.createElement('li');
-        li.style.padding = '10px'; li.style.border = '1px solid #eee'; li.style.marginBottom = '8px'; li.style.borderRadius = '8px';
-        li.innerHTML = `<strong>${n.title}</strong><br>${n.message}<br><small>${new Date(n.createdAt).toLocaleString()}</small>`;
-        list.appendChild(li);
-      });
-    }
+    .schedule-row select,
+    .schedule-row button {
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 10px 12px;
       font-size: 0.95rem;
     }
     .schedule-row .end-label {
@@ -78,10 +33,8 @@
     }
     .schedule-row button {
       border: none;
-      border-radius: 10px;
       background: #e63946;
       color: white;
-      padding: 10px 14px;
       cursor: pointer;
     }
     .schedule-row button:hover {
@@ -108,7 +61,6 @@
     }
   </style>
   <script>
-    // Verificar que el usuario está autenticado y aprobado como psicólogo
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     if (!currentUser || currentUser.role !== 'psicologos' || currentUser.verified !== true) {
       window.location.href = 'login.html';
@@ -181,9 +133,7 @@
   </footer>
 
   <script src="dashboard.js" defer></script>
-
   <script>
-    // Horario: permitir que el psicólogo guarde su disponibilidad
     document.addEventListener('DOMContentLoaded', function() {
       const currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
       if (!currentUser) return;
@@ -191,7 +141,6 @@
       const saveBtn = document.getElementById('saveScheduleBtn');
       const savedMsg = document.getElementById('scheduleSaved');
       const addRowBtn = document.getElementById('addScheduleRowBtn');
-
       const startOptions = ['06:00', '07:00', '08:00', '09:00', '10:00'];
 
       function formatEndTime(start) {
@@ -390,22 +339,17 @@
       window.dispatchEvent(new Event('storage'));
     }
 
-    // Actualizar nombre del psicólogo desde localStorage
     document.addEventListener('DOMContentLoaded', function() {
       const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-      
       if (currentUser && currentUser.name) {
-        // Actualizar saludo principal
         const welcomeTitle = document.getElementById('welcomeTitle');
         if (welcomeTitle) {
           welcomeTitle.textContent = `Bienvenido, ${currentUser.name} 🩺`;
         }
-        
-        // Actualizar atributo data-psicologo
         document.body.setAttribute('data-psicologo', currentUser.name);
       }
+      renderNotifications();
     });
   </script>
-
 </body>
 </html>
