@@ -520,7 +520,16 @@
   </div>
 
   <script>
-    const defaultHours = ['08:00 am', '09:00 am', '10:00 am', '11:00 am', '02:00 pm', '03:00 pm', '04:00 pm', '05:00 pm'];
+    const defaultHours = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
+
+    const HORARIOS_FIJOS = {
+      'Dra. Laura Martínez': { dias: ['Lunes','Miércoles','Viernes'], inicio: 8, fin: 18 },
+      'Dr. Andrés Gómez':    { dias: ['Martes','Jueves','Sábado'],   inicio: 9, fin: 17 },
+      'Dra. Camila Torres':  { dias: ['Lunes','Martes','Miércoles','Jueves'], inicio: 10, fin: 19 },
+      'Dr. Santiago Ríos':   { dias: ['Miércoles','Viernes','Sábado'], inicio: 7, fin: 16 },
+      'Dra. Valentina Cruz': { dias: ['Lunes','Martes','Jueves'],    inicio: 8, fin: 17 },
+      'Dr. Felipe Moreno':   { dias: ['Martes','Miércoles','Viernes'], inicio: 9, fin: 18 },
+    };
     let selectedPsychologo = null;
 
     function getRegisteredUsers() {
@@ -567,16 +576,34 @@
       return days[new Date(date).getDay()];
     }
 
-    function getPsychologistSchedule(psicologoName) {
-      const users = getRegisteredUsers();
-      const normalized = psicologoName.replace(/^Dr\.\s*/i, '').replace(/^Dra\.\s*/i, '');
-      const user = users.find(u => u.name === normalized);
-      return user ? parseScheduleText(user.schedule) : [];
-    }
+    async function getPsychologistScheduleFromAPI(psicologoName) {
+  const API_BASE = window.location.hostname === 'localhost'
+    ? 'http://localhost:3000'
+    : 'https://ame-proyecto.onrender.com';
+
+  // Buscar el email del psicólogo en usuarios registrados
+  const users = getRegisteredUsers();
+  const normalized = psicologoName.replace(/^Dr\.\s*/i, '').replace(/^Dra\.\s*/i, '');
+  const user = users.find(u => u.name === normalized);
+  
+  if (!user) return [];
+
+  try {
+    const res = await fetch(`${API_BASE}/api/horarios/${encodeURIComponent(user.email)}`);
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
 
     function getShiftForDate(psicologoName, date) {
-      const weekday = getWeekdayName(date);
-      return getPsychologistSchedule(psicologoName).find(shift => shift.day === weekday);
+       const weekday = getWeekdayName(date);
+       const users = getRegisteredUsers();
+       const normalized = psicologoName.replace(/^Dr\.\s*/i, '').replace(/^Dra\.\s*/i, '');
+       const user = users.find(u => u.name === normalized);
+       if (!user || !user.schedule) return null;
+       return parseScheduleText(user.schedule).find(s => s.day === weekday);
     }
 
     function buildHourOptions(start, end) {
@@ -629,35 +656,46 @@
     function renderAvailableTimes(psicologoName, date) {
       const select = document.getElementById('horaCita');
       const blockedText = document.getElementById('horasBloqueadas');
-      if (!select) return;
-      const shift = getShiftForDate(psicologoName, date);
+    if (!select) return;
+
       select.innerHTML = '<option value="">-- Selecciona una hora --</option>';
-      const blocked = [];
-      if (!shift) {
-        blockedText.style.display = 'block';
-        blockedText.textContent = 'No hay disponibilidad registrada para este día.';
-        return;
-      }
+      blockedText.style.display = 'none';
 
-      const hours = buildHourOptions(shift.start, shift.end);
-      hours.forEach(hour => {
-        const option = document.createElement('option');
-        option.value = hour;
-        option.textContent = hour;
-        if (!isSlotAvailable(psicologoName, date, hour)) {
-          option.disabled = true;
-          blocked.push(hour);
-        }
-        select.appendChild(option);
-      });
+    const weekday = getWeekdayName(date);
+    const horario = HORARIOS_FIJOS[psicologoName];
 
-      if (blocked.length > 0) {
-        blockedText.style.display = 'block';
-        blockedText.textContent = `Horas no disponibles: ${blocked.join(', ')}`;
-      } else {
-        blockedText.style.display = 'none';
+    let hours = [];
+
+    if (horario && horario.dias.includes(weekday)) {
+      for (let h = horario.inicio; h < horario.fin; h++) {
+        hours.push(`${h.toString().padStart(2,'0')}:00`);
       }
+    } else if (horario && !horario.dias.includes(weekday)) {
+      blockedText.style.display = 'block';
+      blockedText.textContent = `${psicologoName} no atiende los ${weekday}. Días disponibles: ${horario.dias.join(', ')}.`;
+      return;
+    } else {
+      hours = defaultHours;
     }
+
+    const blocked = [];
+    hours.forEach(hour => {
+      const option = document.createElement('option');
+      option.value = hour;
+      option.textContent = hour;
+      if (!isSlotAvailable(psicologoName, date, hour)) {
+        option.disabled = true;
+        blocked.push(hour);
+      }
+      select.appendChild(option);
+    });
+
+    if (blocked.length > 0) {
+      blockedText.style.display = 'block';
+      blockedText.textContent = `Horas ocupadas: ${blocked.join(', ')}`;
+    }
+  }
+    
 
     function renderApprovedPsychologists() {
       const grid = document.querySelector('#psicologos .psicologos-grid');
@@ -712,10 +750,10 @@
       const fechaInput = document.getElementById('fechaCita');
       if (fechaInput) {
         fechaInput.addEventListener('change', function() {
-          if (selectedPsychologo && this.value) {
-            renderAvailableTimes(selectedPsychologo, this.value);
-          }
-        });
+           if (selectedPsychologo && this.value) {
+             renderAvailableTimes(selectedPsychologo, this.value);
+           }
+    });
       }
       renderApprovedPsychologists();
     });
@@ -880,6 +918,24 @@
       const appointments = getAppointments();
       appointments.push(appointment);
       saveAppointments(appointments);
+
+      // Guardar también en la API del backend
+      const API_BASE = window.location.hostname === 'localhost'
+        ? 'http://localhost:3000'
+        : 'https://ame-proyecto.onrender.com';
+
+      fetch(`${API_BASE}/api/citas`, {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({
+            cliente: appointment.clienteName,
+            psicologo: appointment.psicologoName,
+            fecha: appointment.fecha,
+            hora: appointment.hora,
+            motivo: appointment.motivo || '',
+            disponible: true
+        })
+      }).catch(err => console.warn('No se pudo guardar en API:', err));
  
       const fechaFormateada = new Date(fecha + 'T12:00:00').toLocaleDateString('es-CO', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
