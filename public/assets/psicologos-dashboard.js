@@ -59,28 +59,31 @@ function updateUserDisplay() {
 
 async function loadAllData() {
   try {
-    // Cargar pacientes
-    const pacientesRes = await fetch('src/data/pacientes.json');
-    dashboardState.pacientes = await pacientesRes.json();
-    
-    // Cargar notas
-    const notasRes = await fetch('src/data/notas-sesion.json');
-    dashboardState.notas = await notasRes.json();
-    
-    // Cargar comunicación
-    const comRes = await fetch('src/data/comunicacion.json');
-    dashboardState.comunicacion = await comRes.json();
-    
-    // Cargar solicitudes
-    const solicRes = await fetch('src/data/solicitudes-cancelacion.json');
-    dashboardState.solicitudes = await solicRes.json();
-    
-    // Cargar citas
-    const citasRes = await fetch('src/data/citas.json');
-    dashboardState.citas = await citasRes.json();
-    
+    const fetchJson = async (url) => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) return [];
+        return await res.json();
+      } catch { return []; }
+    };
+
+    const base = window.location.hostname === 'localhost'
+      ? 'http://localhost:3000'
+      : 'https://ame-proyecto.onrender.com';
+
+    dashboardState.pacientes    = await fetchJson(`${base}/api/pacientes`).catch(() => []);
+    dashboardState.notas        = JSON.parse(localStorage.getItem('ame_notas')) || [];
+    dashboardState.comunicacion = JSON.parse(localStorage.getItem('ame_comunicacion')) || [];
+    dashboardState.solicitudes  = JSON.parse(localStorage.getItem('ame_solicitudes')) || [];
+    dashboardState.citas        = await fetchJson(`${base}/api/citas`).catch(() => []);
+
   } catch (error) {
-    console.error('Error loading data:', error);
+    console.warn('Error cargando datos, usando arrays vacíos:', error);
+    dashboardState.pacientes    = [];
+    dashboardState.notas        = [];
+    dashboardState.comunicacion = [];
+    dashboardState.solicitudes  = [];
+    dashboardState.citas        = [];
   }
 }
 
@@ -120,24 +123,25 @@ function switchModule(moduleName) {
 // ============================================
 
 function initializeQuickActions() {
-  document.getElementById('btnNewSession').addEventListener('click', () => {
-    openModal('createNoteModal');
-  });
-  
-  document.getElementById('btnNewAppointment').addEventListener('click', () => {
-    alert('Función: Agendar cita (se integrará con el backend)');
-  });
-  
-  document.getElementById('btnSearchPatient').addEventListener('click', () => {
-    switchModule('pacientes');
-    document.getElementById('patientSearchInput').focus();
-  });
-  
-  document.getElementById('btnSendMessage').addEventListener('click', () => {
-    switchModule('comunicacion');
-  });
-}
 
+  const btnNewSession =
+    document.getElementById('btnNewSession');
+
+  if (btnNewSession) {
+    btnNewSession.addEventListener('click', () => {
+      openModal('createNoteModal');
+    });
+  }
+
+  const btnNewAppointment =
+    document.getElementById('btnNewAppointment');
+
+  if (btnNewAppointment) {
+    btnNewAppointment.addEventListener('click', () => {
+      alert('Función: Agendar cita (se integrará con el backend)');
+    });
+  }
+}
 // ============================================
 // DAILY SUMMARY
 // ============================================
@@ -922,4 +926,104 @@ function submitCancelRequest() {
 function showNotification(message, type = 'info') {
   console.log(`[${type.toUpperCase()}] ${message}`);
   // Implementar toast notification si es necesario
+}
+
+// ============================================
+// HORARIOS DEL PSICÓLOGO
+// ============================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  initializeScheduleManager();
+});
+
+function initializeScheduleManager() {
+  const addBtn = document.getElementById('addScheduleRowBtn');
+  const saveBtn = document.getElementById('saveScheduleBtn');
+
+  if (!addBtn || !saveBtn) return;
+
+  addBtn.addEventListener('click', addScheduleRow);
+  saveBtn.addEventListener('click', saveSchedule);
+
+  loadSchedule();
+}
+
+function addScheduleRow(day = '', start = '', end = '') {
+  const container = document.getElementById('scheduleRows');
+
+  const row = document.createElement('div');
+  row.className = 'schedule-row';
+
+  row.innerHTML = `
+    <select class="schedule-day">
+      <option value="">Seleccione día</option>
+      <option value="Lunes" ${day === 'Lunes' ? 'selected' : ''}>Lunes</option>
+      <option value="Martes" ${day === 'Martes' ? 'selected' : ''}>Martes</option>
+      <option value="Miércoles" ${day === 'Miércoles' ? 'selected' : ''}>Miércoles</option>
+      <option value="Jueves" ${day === 'Jueves' ? 'selected' : ''}>Jueves</option>
+      <option value="Viernes" ${day === 'Viernes' ? 'selected' : ''}>Viernes</option>
+      <option value="Sábado" ${day === 'Sábado' ? 'selected' : ''}>Sábado</option>
+      <option value="Domingo" ${day === 'Domingo' ? 'selected' : ''}>Domingo</option>
+    </select>
+
+    <input type="time" class="schedule-start" value="${start}">
+    <input type="time" class="schedule-end" value="${end}">
+
+    <button type="button" class="remove-row">❌</button>
+  `;
+
+  row.querySelector('.remove-row').addEventListener('click', () => {
+    row.remove();
+  });
+
+  container.appendChild(row);
+}
+
+function saveSchedule() {
+  const rows = document.querySelectorAll('.schedule-row');
+
+  const schedule = [];
+
+  rows.forEach(row => {
+    const day = row.querySelector('.schedule-day').value;
+    const start = row.querySelector('.schedule-start').value;
+    const end = row.querySelector('.schedule-end').value;
+
+    if (day && start && end) {
+      schedule.push({
+        day,
+        start,
+        end
+      });
+    }
+  });
+
+  localStorage.setItem('ame_schedule', JSON.stringify(schedule));
+
+  const msg = document.getElementById('scheduleSaved');
+
+  if (msg) {
+    msg.style.display = 'block';
+
+    setTimeout(() => {
+      msg.style.display = 'none';
+    }, 3000);
+  }
+
+  showNotification('Horario guardado correctamente', 'success');
+}
+
+function loadSchedule() {
+  const saved = JSON.parse(
+    localStorage.getItem('ame_schedule') || '[]'
+  );
+
+  if (saved.length === 0) {
+    addScheduleRow();
+    return;
+  }
+
+  saved.forEach(item => {
+    addScheduleRow(item.day, item.start, item.end);
+  });
 }
