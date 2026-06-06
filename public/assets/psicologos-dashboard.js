@@ -124,23 +124,28 @@ function switchModule(moduleName) {
 
 function initializeQuickActions() {
 
-  const btnNewSession =
-    document.getElementById('btnNewSession');
-
-  if (btnNewSession) {
-    btnNewSession.addEventListener('click', () => {
+  document.getElementById('btnNewSession')
+    ?.addEventListener('click', () => {
       openModal('createNoteModal');
     });
-  }
 
-  const btnNewAppointment =
-    document.getElementById('btnNewAppointment');
-
-  if (btnNewAppointment) {
-    btnNewAppointment.addEventListener('click', () => {
+  document.getElementById('btnNewAppointment')
+    ?.addEventListener('click', () => {
       alert('Función: Agendar cita (se integrará con el backend)');
     });
-  }
+
+  document.getElementById('btnSearchPatient')
+    ?.addEventListener('click', () => {
+      switchModule('pacientes');
+
+      document.getElementById('patientSearchInput')
+        ?.focus();
+    });
+
+  document.getElementById('btnSendMessage')
+    ?.addEventListener('click', () => {
+      switchModule('comunicacion');
+    });
 }
 // ============================================
 // DAILY SUMMARY
