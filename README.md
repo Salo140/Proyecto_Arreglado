@@ -257,3 +257,7 @@ En tu HTML agrega antes de `ia-chat.js`:
 - GitHub Pages permanece como frontend estático.
 - La seguridad es mucho mayor porque el navegador no maneja el token.
 - El chat puede mantener lógica de fallback local estable.
+
+## DIAGRAMA ENTIDAD RELACIÓN
+
+[Diagrama entidad relación](./Diagrama_entidad_relación.png)
