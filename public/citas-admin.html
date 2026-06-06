@@ -6,7 +6,6 @@
   <title>Gestión de Citas — Âme</title>
   <link rel="stylesheet" href="assets/styles.css">
   <script>
-    // Verificar que el usuario está autenticado como administrativo
     const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     if (!currentUser || currentUser.role !== 'administrativo') {
       window.location.href = 'login.html';
@@ -14,7 +13,7 @@
   </script>
 </head>
 <body>
-
+ 
   <header class="navbar">
     <h1 class="logo">Âme</h1>
     <nav>
@@ -24,22 +23,22 @@
       </ul>
     </nav>
   </header>
-
+ 
   <main class="dashboard" style="padding: 40px 48px;">
     <div class="dashboard-hero">
       <h2>📅 Gestión de Citas</h2>
       <p>Visualiza, crea y gestiona todas las citas programadas en la plataforma.</p>
     </div>
-
+ 
     <section class="citas-panel" style="background: var(--white); border-radius: var(--radius-md); padding: 28px; box-shadow: var(--shadow-sm);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <div>
           <h3 style="font-family: 'Playfair Display', serif; color: var(--green-dark); font-size: 1.3rem; margin-bottom: 6px;">Citas programadas</h3>
-          <p id="citasMessage" style="color: var(--text-light); font-size: 0.9rem;">Las citas se cargan desde la API local.</p>
+          <p id="citasMessage" style="color: var(--text-light); font-size: 0.9rem;">Cargando citas...</p>
         </div>
         <button id="btnAgregarCita" class="btn">+ Nueva cita</button>
       </div>
-      
+ 
       <div style="overflow-x: auto;">
         <table id="citasTable" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
           <thead style="background: var(--green-pale); border-bottom: 2px solid var(--green-light);">
@@ -61,23 +60,23 @@
         </table>
       </div>
     </section>
-
+ 
     <!-- Modal para agregar cita -->
     <div id="citaFormModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
       <div style="background: var(--white); border-radius: var(--radius-lg); padding: 32px; max-width: 500px; width: 90%; box-shadow: var(--shadow-lg);">
         <h3 style="margin-bottom: 20px; color: var(--green-dark); font-family: 'Playfair Display', serif; font-size: 1.5rem;">Nueva cita</h3>
-        
+ 
         <form id="citaForm" style="display: flex; flex-direction: column; gap: 16px;">
           <div>
             <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-dark); font-size: 0.9rem;">Cliente *</label>
             <input type="text" name="cliente" placeholder="Nombre del cliente" required style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: var(--radius-sm); font-family: inherit; font-size: 0.9rem;">
           </div>
-          
+ 
           <div>
             <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-dark); font-size: 0.9rem;">Psicólogo *</label>
             <input type="text" name="psicologo" placeholder="Nombre del psicólogo" required style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: var(--radius-sm); font-family: inherit; font-size: 0.9rem;">
           </div>
-          
+ 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
             <div>
               <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-dark); font-size: 0.9rem;">Fecha *</label>
@@ -88,63 +87,63 @@
               <input type="time" name="hora" required style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: var(--radius-sm); font-family: inherit; font-size: 0.9rem;">
             </div>
           </div>
-          
+ 
           <div>
             <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-dark); font-size: 0.9rem;">Motivo (opcional)</label>
             <textarea name="motivo" placeholder="Motivo de la cita" rows="3" style="width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: var(--radius-sm); font-family: inherit; font-size: 0.9rem; resize: vertical;"></textarea>
           </div>
-          
+ 
           <div style="display: flex; gap: 12px; margin-top: 8px;">
             <button type="submit" class="btn" style="flex: 1;">Guardar cita</button>
-            <button type="button" onclick="document.getElementById('citaFormModal').style.display='none'" style="flex: 1; background: var(--text-light); color: var(--white); padding: 12px 24px; border: none; border-radius: 30px; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: var(--transition);">Cancelar</button>
+            <button type="button" onclick="document.getElementById('citaFormModal').style.display='none'" style="flex: 1; background: var(--text-light); color: var(--white); padding: 12px 24px; border: none; border-radius: 30px; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer;">Cancelar</button>
           </div>
         </form>
       </div>
     </div>
   </main>
-
+ 
   <footer>
     <p>&copy; 2026 Âme — Plataforma de bienestar emocional</p>
   </footer>
-
+ 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      
-      // Botón para abrir modal de agregar cita
-      document.getElementById('btnAgregarCita')?.addEventListener('click', function() {
+    // URL dinámica según entorno
+    const API_BASE = window.location.hostname === 'localhost'
+      ? 'http://localhost:3000'
+      : 'https://ame-proyecto.onrender.com';
+ 
+    document.addEventListener('DOMContentLoaded', function () {
+ 
+      document.getElementById('btnAgregarCita')?.addEventListener('click', function () {
         document.getElementById('citaFormModal').style.display = 'flex';
       });
-      
-      // Cerrar modal al hacer clic fuera de él
-      document.getElementById('citaFormModal')?.addEventListener('click', function(e) {
-        if (e.target === this) {
-          this.style.display = 'none';
-        }
+ 
+      document.getElementById('citaFormModal')?.addEventListener('click', function (e) {
+        if (e.target === this) this.style.display = 'none';
       });
-      
-      // Manejar envío del formulario
-      document.getElementById('citaForm')?.addEventListener('submit', function(e) {
+ 
+      document.getElementById('citaForm')?.addEventListener('submit', function (e) {
         e.preventDefault();
-        
+ 
         const formData = new FormData(this);
-        const cliente = formData.get('cliente');
+        const cliente  = formData.get('cliente');
         const psicologo = formData.get('psicologo');
-        const fecha = formData.get('fecha');
-        const hora = formData.get('hora');
-        const motivo = formData.get('motivo') || '';
-        
+        const fecha    = formData.get('fecha');
+        const hora     = formData.get('hora');
+        const motivo   = formData.get('motivo') || '';
+ 
         if (!fecha || !hora) {
           alert('Por favor completa todos los campos requeridos');
           return;
         }
-        
-        fetch('http://localhost:3000/api/citas', {
+ 
+        fetch(`${API_BASE}/api/citas`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ cliente, psicologo, fecha, hora, motivo })
         })
         .then(res => res.json())
-        .then(data => {
+        .then(() => {
           alert('Cita creada exitosamente');
           document.getElementById('citaForm').reset();
           document.getElementById('citaFormModal').style.display = 'none';
@@ -155,61 +154,61 @@
           alert('Error al crear la cita');
         });
       });
-      
+ 
       function cargarCitas() {
-        fetch('http://localhost:3000/api/citas')
+        fetch(`${API_BASE}/api/citas`)
           .then(res => res.json())
           .then(citas => {
             const tbody = document.getElementById('citasTableBody');
             const citasMessage = document.getElementById('citasMessage');
-            
+ 
             tbody.innerHTML = '';
-            
+ 
             if (!citas || citas.length === 0) {
               citasMessage.textContent = 'No hay citas disponibles';
               tbody.innerHTML = '<tr><td colspan="7" style="padding: 20px; text-align: center; color: var(--text-light);">No hay citas programadas</td></tr>';
               return;
             }
-            
+ 
             citasMessage.textContent = `Total de citas: ${citas.length}`;
-            
+ 
             citas.forEach(cita => {
               const row = document.createElement('tr');
               row.style.borderBottom = '1px solid #eee';
               row.style.transition = 'background 0.2s ease';
               row.addEventListener('mouseover', () => row.style.background = 'var(--green-pale)');
-              row.addEventListener('mouseout', () => row.style.background = '');
-              
-              const estadoBadge = cita.disponible 
-                ? '<span style="background: #d4edda; color: #155724; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500;">✓ Confirmada</span>'
-                : '<span style="background: #fff3cd; color: #856404; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 500;">⏳ Pendiente</span>';
-              
+              row.addEventListener('mouseout',  () => row.style.background = '');
+ 
+              const estadoBadge = cita.disponible
+                ? '<span style="background:#d4edda;color:#155724;padding:4px 12px;border-radius:20px;font-size:0.85rem;font-weight:500;">✓ Confirmada</span>'
+                : '<span style="background:#fff3cd;color:#856404;padding:4px 12px;border-radius:20px;font-size:0.85rem;font-weight:500;">⏳ Pendiente</span>';
+ 
               row.innerHTML = `
-                <td style="padding: 12px; color: var(--text-dark);">${cita.cliente || '—'}</td>
-                <td style="padding: 12px; color: var(--text-dark);">${cita.psicologo || '—'}</td>
-                <td style="padding: 12px; color: var(--text-dark);">${cita.fecha || '—'}</td>
-                <td style="padding: 12px; color: var(--text-dark);">${cita.hora || '—'}</td>
-                <td style="padding: 12px; color: var(--text-mid); max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${cita.motivo || '—'}</td>
-                <td style="padding: 12px; text-align: center;">${estadoBadge}</td>
-                <td style="padding: 12px; text-align: center;">
-                  <button onclick="eliminarCita(${cita.id})" style="background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: background 0.2s ease;" onmouseover="this.style.background='#c82333'" onmouseout="this.style.background='#dc3545'">Eliminar</button>
+                <td style="padding:12px;color:var(--text-dark);">${cita.cliente || '—'}</td>
+                <td style="padding:12px;color:var(--text-dark);">${cita.psicologo || '—'}</td>
+                <td style="padding:12px;color:var(--text-dark);">${cita.fecha || '—'}</td>
+                <td style="padding:12px;color:var(--text-dark);">${cita.hora || '—'}</td>
+                <td style="padding:12px;color:var(--text-mid);max-width:200px;overflow:hidden;text-overflow:ellipsis;">${cita.motivo || '—'}</td>
+                <td style="padding:12px;text-align:center;">${estadoBadge}</td>
+                <td style="padding:12px;text-align:center;">
+                  <button onclick="eliminarCita(${cita.id})" style="background:#dc3545;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.85rem;font-weight:600;" onmouseover="this.style.background='#c82333'" onmouseout="this.style.background='#dc3545'">Eliminar</button>
                 </td>
               `;
-              
+ 
               tbody.appendChild(row);
             });
           })
           .catch(err => {
             console.error('Error cargando citas:', err);
-            document.getElementById('citasMessage').textContent = 'Error al cargar citas. Asegúrate de que el servidor está corriendo.';
-            document.getElementById('citasTableBody').innerHTML = '<tr><td colspan="7" style="padding: 20px; text-align: center; color: #dc3545;">Error al cargar las citas</td></tr>';
+            document.getElementById('citasMessage').textContent = 'Error al cargar las citas.';
+            document.getElementById('citasTableBody').innerHTML = '<tr><td colspan="7" style="padding:20px;text-align:center;color:#dc3545;">Error al cargar las citas</td></tr>';
           });
       }
-      
-      window.eliminarCita = function(id) {
+ 
+      window.eliminarCita = function (id) {
         if (!confirm('¿Estás seguro de que deseas eliminar esta cita?')) return;
-        
-        fetch(`http://localhost:3000/api/citas/${id}`, { method: 'DELETE' })
+ 
+        fetch(`${API_BASE}/api/citas/${id}`, { method: 'DELETE' })
           .then(res => {
             if (res.ok) {
               alert('Cita eliminada correctamente');
@@ -223,11 +222,10 @@
             alert('Error al eliminar la cita');
           });
       };
-      
-      // Cargar citas al iniciar
+ 
       cargarCitas();
     });
   </script>
-
+ 
 </body>
 </html>

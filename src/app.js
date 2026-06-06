@@ -21,6 +21,9 @@ app.use((req, res, next) => {
 const citasRoutes = require('./routes/citas');
 app.use('/api/citas', citasRoutes);
 
+const horariosRoutes = require('./routes/horarios');
+app.use('/api/horarios', horariosRoutes);
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });

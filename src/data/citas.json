@@ -25,5 +25,14 @@
     "hora": "11:00",
     "motivo": "Estrés laboral",
     "disponible": false
+  },
+  {
+    "id": 4,
+    "cliente": "Cliente (Demo)",
+    "psicologo": "Dra. Laura Martínez",
+    "fecha": "2026-06-06",
+    "hora": "08:00",
+    "motivo": "Ansiedad",
+    "disponible": true
   }
 ]

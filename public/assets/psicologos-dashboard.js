@@ -984,51 +984,46 @@ function addScheduleRow(day = '', start = '', end = '') {
   container.appendChild(row);
 }
 
-function saveSchedule() {
-  const rows = document.querySelectorAll('.schedule-row');
+const API_BASE = window.location.hostname === 'localhost'
+  ? 'http://localhost:3000'
+  : 'https://ame-proyecto.onrender.com';
 
+async function saveSchedule() {
+  const rows = document.querySelectorAll('.schedule-row');
   const schedule = [];
 
   rows.forEach(row => {
-    const day = row.querySelector('.schedule-day').value;
+    const day   = row.querySelector('.schedule-day').value;
     const start = row.querySelector('.schedule-start').value;
-    const end = row.querySelector('.schedule-end').value;
-
-    if (day && start && end) {
-      schedule.push({
-        day,
-        start,
-        end
-      });
-    }
+    const end   = row.querySelector('.schedule-end').value;
+    if (day && start && end) schedule.push({ day, start, end });
   });
 
-  localStorage.setItem('ame_schedule', JSON.stringify(schedule));
+  const psicologo = dashboardState.currentUser.email;
+
+  await fetch(`${API_BASE}/api/horarios/${encodeURIComponent(psicologo)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ schedule })
+  });
 
   const msg = document.getElementById('scheduleSaved');
-
   if (msg) {
     msg.style.display = 'block';
-
-    setTimeout(() => {
-      msg.style.display = 'none';
-    }, 3000);
+    setTimeout(() => { msg.style.display = 'none'; }, 3000);
   }
-
-  showNotification('Horario guardado correctamente', 'success');
 }
 
-function loadSchedule() {
-  const saved = JSON.parse(
-    localStorage.getItem('ame_schedule') || '[]'
-  );
+async function loadSchedule() {
+  const psicologo = dashboardState.currentUser?.email;
+  if (!psicologo) { addScheduleRow(); return; }
 
-  if (saved.length === 0) {
+  try {
+    const res = await fetch(`${API_BASE}/api/horarios/${encodeURIComponent(psicologo)}`);
+    const saved = await res.json();
+    if (!saved.length) { addScheduleRow(); return; }
+    saved.forEach(item => addScheduleRow(item.day, item.start, item.end));
+  } catch {
     addScheduleRow();
-    return;
   }
-
-  saved.forEach(item => {
-    addScheduleRow(item.day, item.start, item.end);
-  });
 }
