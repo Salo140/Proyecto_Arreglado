@@ -5,7 +5,9 @@
  * En GitHub Pages, la sección de citas muestra un mensaje informativo.
  */
 
-const API_URL = 'http://localhost:3000/api/citas';
+const API_URL = window.location.hostname === 'localhost'
+  ? 'http://localhost:3000/api/citas'
+  : 'https://ame-proyecto.onrender.com/api/citas';
 const STATIC_CITAS_PATH = 'data/citas.json';
 
 function getStaticCitasUrl() {
