@@ -25,30 +25,186 @@
     </nav>
   </header>
 
+  <!-- MÓDULO: GESTIÓN DE USUARIOS -->
+<section id="mod-usuarios" class="admin-modulo" style="display:none">
+  <div class="modulo-header">
+    <h3>👥 Gestión de usuarios</h3>
+    <button class="btn-cerrar-modulo" onclick="cerrarModulo('mod-usuarios')">✕ Cerrar</button>
+  </div>
+
+  <div class="modulo-toolbar">
+    <input type="text" id="usr-busqueda" placeholder="🔍 Buscar por nombre o correo…" oninput="filtrarUsuarios()" class="modulo-input">
+    <select id="usr-filtro-rol" onchange="filtrarUsuarios()" class="modulo-select">
+      <option value="">Todos los roles</option>
+      <option value="cliente">Clientes</option>
+      <option value="psicologos">Psicólogos</option>
+    </select>
+    <select id="usr-filtro-estado" onchange="filtrarUsuarios()" class="modulo-select">
+      <option value="">Todos los estados</option>
+      <option value="active">Activo</option>
+      <option value="pending">Pendiente</option>
+      <option value="rejected">Rechazado</option>
+    </select>
+  </div>
+
+  <!-- Tabla de usuarios -->
+  <div class="tabla-responsive">
+    <table class="admin-tabla" id="tabla-usuarios">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Correo</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-usuarios"></tbody>
+    </table>
+  </div>
+
+  <!-- Panel de reasignación de pacientes -->
+  <div id="panel-reasignacion" class="panel-secundario" style="display:none">
+    <h4>🔄 Reasignar paciente</h4>
+    <p id="reasign-descripcion"></p>
+    <select id="reasign-psicologo" class="modulo-select">
+      <option value="">Seleccionar psicólogo…</option>
+    </select>
+    <div class="modulo-acciones">
+      <button class="btn btn-sm" onclick="confirmarReasignacion()">Confirmar reasignación</button>
+      <button class="btn btn-sm btn-outline" onclick="document.getElementById('panel-reasignacion').style.display='none'">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Modal perfil -->
+  <div id="modal-perfil" class="admin-modal" style="display:none">
+    <div class="admin-modal-box">
+      <button class="modal-close" onclick="document.getElementById('modal-perfil').style.display='none'">✕</button>
+      <div id="perfil-contenido"></div>
+    </div>
+  </div>
+</section>
+
+<!-- MÓDULO: AGENDA Y CITAS -->
+<section id="mod-agenda" class="admin-modulo" style="display:none">
+  <div class="modulo-header">
+    <h3>📅 Agenda y citas</h3>
+    <button class="btn-cerrar-modulo" onclick="cerrarModulo('mod-agenda')">✕ Cerrar</button>
+  </div>
+
+  <div class="agenda-tabs">
+    <button class="agenda-tab active" onclick="cambiarTabAgenda('todas', this)">Todas las citas</button>
+    <button class="agenda-tab" onclick="cambiarTabAgenda('cancelaciones', this)">
+      Solicitudes de cancelación
+      <span id="badge-cancelaciones" class="badge" style="display:none">0</span>
+    </button>
+    <button class="agenda-tab" onclick="cambiarTabAgenda('reagendaciones', this)">
+      Solicitudes de reagendación
+      <span id="badge-reagendaciones" class="badge" style="display:none">0</span>
+    </button>
+  </div>
+
+  <!-- Tab: todas las citas -->
+  <div id="tab-todas" class="agenda-panel">
+    <div class="modulo-toolbar">
+      <input type="text" id="cita-busqueda" placeholder="🔍 Buscar cita…" oninput="filtrarCitas()" class="modulo-input">
+      <select id="cita-filtro-estado" onchange="filtrarCitas()" class="modulo-select">
+        <option value="">Todos los estados</option>
+        <option value="scheduled">Programada</option>
+        <option value="completed">Completada</option>
+        <option value="cancelled">Cancelada</option>
+      </select>
+    </div>
+    <div class="tabla-responsive">
+      <table class="admin-tabla" id="tabla-citas">
+        <thead>
+          <tr><th>Cliente</th><th>Psicólogo</th><th>Fecha</th><th>Hora</th><th>Motivo</th><th>Estado</th></tr>
+        </thead>
+        <tbody id="tbody-citas"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab: cancelaciones -->
+  <div id="tab-cancelaciones" class="agenda-panel" style="display:none">
+    <div id="lista-cancelaciones"></div>
+  </div>
+
+  <!-- Tab: reagendaciones -->
+  <div id="tab-reagendaciones" class="agenda-panel" style="display:none">
+    <div id="lista-reagendaciones"></div>
+  </div>
+</section>
+
+<!-- MÓDULO: REPORTES -->
+<section id="mod-reportes" class="admin-modulo" style="display:none">
+  <div class="modulo-header">
+    <h3>📊 Reportes y estadísticas</h3>
+    <button class="btn-cerrar-modulo" onclick="cerrarModulo('mod-reportes')">✕ Cerrar</button>
+  </div>
+
+  <div class="reportes-kpis" id="reportes-kpis"></div>
+
+  <div class="reportes-grafica-wrap">
+    <h4>Citas por estado</h4>
+    <canvas id="graficaCitas" width="500" height="260" style="max-width:100%"></canvas>
+  </div>
+</section>
+
+<!-- MÓDULO: SOPORTE INTERNO -->
+<section id="mod-soporte" class="admin-modulo" style="display:none">
+  <div class="modulo-header">
+    <h3>🔧 Soporte interno</h3>
+    <button class="btn-cerrar-modulo" onclick="cerrarModulo('mod-soporte')">✕ Cerrar</button>
+  </div>
+
+  <div class="soporte-tabs">
+    <button class="agenda-tab active" onclick="cambiarTabSoporte('todos', this)">Todos</button>
+    <button class="agenda-tab" onclick="cambiarTabSoporte('pendientes', this)">Pendientes</button>
+    <button class="agenda-tab" onclick="cambiarTabSoporte('respondidos', this)">Respondidos</button>
+  </div>
+
+  <div id="lista-soporte" class="soporte-lista"></div>
+
+  <!-- Modal responder -->
+  <div id="modal-respuesta" class="admin-modal" style="display:none">
+    <div class="admin-modal-box">
+      <button class="modal-close" onclick="document.getElementById('modal-respuesta').style.display='none'">✕</button>
+      <h4 id="resp-asunto"></h4>
+      <p id="resp-mensaje-original" style="background:var(--green-pale);padding:12px;border-radius:8px;margin:12px 0;font-size:.9rem"></p>
+      <label style="font-size:.85rem;font-weight:600">Tu respuesta:</label>
+      <textarea id="resp-texto" class="modulo-input" style="height:100px;resize:vertical;margin-top:6px;width:100%"></textarea>
+      <div class="modulo-acciones" style="margin-top:12px">
+        <button class="btn btn-sm" onclick="enviarRespuesta()">Enviar respuesta</button>
+      </div>
+    </div>
+  </div>
+</section>
+
   <main class="dashboard">
     <div class="dashboard-hero">
       <h2>Área Administrativa 🗂️</h2>
       <p>Gestiona usuarios, citas y seguimiento de la plataforma desde un solo lugar.</p>
     </div>
-
-    <div class="dashboard-grid">
-      <article class="info-card">
-        <h3>👥 Gestión de usuarios</h3>
-        <p>Revisa perfiles de clientes y psicólogos, y controla el acceso a los servicios.</p>
-      </article>
-      <article class="info-card">
-        <h3>📅 Agenda y citas</h3>
-        <p>Supervisa las sesiones programadas, confirma asistencias y actualiza horarios.</p>
-      </article>
-      <article class="info-card">
-        <h3>📊 Reportes</h3>
-        <p>Estadísticas de uso, recursos más consultados y actividad de la comunidad.</p>
-      </article>
-      <article class="info-card">
-        <h3>🔧 Soporte interno</h3>
-        <p>Controla solicitudes y coordina al equipo de psicólogos y administración.</p>
-      </article>
-    </div>
+    
+<div class="dashboard-grid">
+  <article class="info-card" onclick="abrirModulo('mod-usuarios')">
+    <h3>👥 Gestión de usuarios</h3>
+    <p>Revisa perfiles de clientes y psicólogos, y controla el acceso a los servicios.</p>
+  </article>
+  <article class="info-card" onclick="abrirModulo('mod-agenda')">
+    <h3>📅 Agenda y citas</h3>
+    <p>Supervisa sesiones, solicitudes de cancelación y reagendación.</p>
+  </article>
+  <article class="info-card" onclick="abrirModulo('mod-reportes')">
+    <h3>📊 Reportes</h3>
+    <p>Estadísticas de uso, actividad y métricas de la plataforma.</p>
+  </article>
+  <article class="info-card" onclick="abrirModulo('mod-soporte')">
+    <h3>🔧 Soporte interno</h3>
+    <p>Bandeja de mensajes de psicólogos y clientes.</p>
+  </article>
+</div>
 
     <section class="admin-panel">
       <h3>Solicitudes de psicólogos</h3>
@@ -311,6 +467,473 @@
     document.addEventListener('DOMContentLoaded', function() {
       renderPendingPsychologists();
     });
+
+    function abrirModulo(id) {
+  // Cerrar todos primero
+  document.querySelectorAll('.admin-modulo').forEach(m => m.style.display = 'none');
+  const mod = document.getElementById(id);
+  if (!mod) return;
+  mod.style.display = 'block';
+  mod.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Cargar contenido según módulo
+  if (id === 'mod-usuarios')  renderTablaUsuarios();
+  if (id === 'mod-agenda')    { renderTablaCitas(); renderSolicitudesCancelacion(); renderSolicitudesReagendacion(); }
+  if (id === 'mod-reportes')  renderReportes();
+  if (id === 'mod-soporte')   renderSoporte('todos');
+}
+
+function cerrarModulo(id) {
+  const mod = document.getElementById(id);
+  if (mod) mod.style.display = 'none';
+}
+
+
+// ------- GESTIÓN DE USUARIOS -------
+
+let _usuariosFiltrados = [];
+let _reasignPacienteEmail = null;
+
+function renderTablaUsuarios() {
+  const usuarios = getRegisteredUsers();
+  _usuariosFiltrados = usuarios;
+  _pintarFilasUsuarios(usuarios);
+}
+
+function filtrarUsuarios() {
+  const q      = document.getElementById('usr-busqueda').value.toLowerCase();
+  const rol    = document.getElementById('usr-filtro-rol').value;
+  const estado = document.getElementById('usr-filtro-estado').value;
+  const todos  = getRegisteredUsers();
+
+  _usuariosFiltrados = todos.filter(u => {
+    const matchQ = !q || (u.name || '').toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q);
+    const matchRol    = !rol    || u.role === rol;
+    const matchEstado = !estado || u.status === estado;
+    return matchQ && matchRol && matchEstado;
+  });
+  _pintarFilasUsuarios(_usuariosFiltrados);
+}
+
+function _pintarFilasUsuarios(lista) {
+  const tbody = document.getElementById('tbody-usuarios');
+  if (!tbody) return;
+  if (!lista.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="modulo-vacio">No se encontraron usuarios.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = lista.map(u => {
+    const esPsicologo = u.role === 'psicologos';
+    const acciones = `
+      <button class="btn-accion btn-ver" onclick="verPerfil('${u.id}')">Ver</button>
+      ${esPsicologo && u.status === 'pending' ? `
+        <button class="btn-accion btn-aprobar" onclick="handlePsychologistReview('${u.id}','approve')">Aprobar</button>
+        <button class="btn-accion btn-rechazar" onclick="handlePsychologistReview('${u.id}','reject')">Rechazar</button>
+      ` : ''}
+      ${u.role === 'cliente' ? `<button class="btn-accion btn-reasig" onclick="iniciarReasignacion('${u.id}','${_esc(u.name)}','${_esc(u.email)}')">Reasignar</button>` : ''}
+    `;
+    return `<tr>
+      <td>${_esc(u.name || '—')}</td>
+      <td>${_esc(u.email || '—')}</td>
+      <td>${_rolLabel(u.role)}</td>
+      <td><span class="estado-badge estado-${u.status || 'active'}">${_estadoLabel(u.status)}</span></td>
+      <td>${acciones}</td>
+    </tr>`;
+  }).join('');
+}
+
+function verPerfil(id) {
+  const u = getRegisteredUsers().find(x => x.id === id);
+  if (!u) return;
+  const box = document.getElementById('perfil-contenido');
+  box.innerHTML = `
+    <h4 style="font-family:'Playfair Display',serif;color:var(--green-dark);margin-bottom:14px">
+      ${_esc(u.name || 'Sin nombre')}
+    </h4>
+    <table style="width:100%;font-size:.88rem;border-collapse:collapse">
+      ${_fila('Correo', u.email)}
+      ${_fila('Rol', _rolLabel(u.role))}
+      ${_fila('Estado', _estadoLabel(u.status))}
+      ${u.specialty  ? _fila('Especialidad', u.specialty)  : ''}
+      ${u.experience ? _fila('Experiencia',  u.experience + ' años') : ''}
+      ${u.institution? _fila('Institución',  u.institution) : ''}
+      ${u.certificate? _fila('Certificado',  u.certificate) : ''}
+      ${u.reviewNotes? _fila('Notas',        u.reviewNotes) : ''}
+    </table>
+  `;
+  document.getElementById('modal-perfil').style.display = 'flex';
+}
+
+function _fila(l, v) {
+  return `<tr>
+    <td style="padding:6px 10px;font-weight:600;color:var(--text-mid);width:40%;border-bottom:1px solid #f5f5f5">${l}</td>
+    <td style="padding:6px 10px;border-bottom:1px solid #f5f5f5">${_esc(String(v))}</td>
+  </tr>`;
+}
+
+function iniciarReasignacion(id, nombre, email) {
+  _reasignPacienteEmail = email;
+  const psics = getRegisteredUsers().filter(u => u.role === 'psicologos' && u.status === 'active');
+  const sel = document.getElementById('reasign-psicologo');
+  sel.innerHTML = '<option value="">Seleccionar psicólogo…</option>' +
+    psics.map(p => `<option value="${_esc(p.email)}">${_esc(p.name)}</option>`).join('');
+  document.getElementById('reasign-descripcion').textContent =
+    `Reasignar a "${nombre}" a un nuevo psicólogo:`;
+  document.getElementById('panel-reasignacion').style.display = 'block';
+}
+
+function confirmarReasignacion() {
+  const nPsic = document.getElementById('reasign-psicologo').value;
+  if (!nPsic) return alert('Selecciona un psicólogo primero.');
+  // Guardar en localStorage como log de reasignación
+  const reasigns = JSON.parse(localStorage.getItem('ame_reasignaciones') || '[]');
+  reasigns.push({ pacienteEmail: _reasignPacienteEmail, nuevoPsicologo: nPsic, fecha: new Date().toISOString() });
+  localStorage.setItem('ame_reasignaciones', JSON.stringify(reasigns));
+  addNotification({ recipientEmail: nPsic, title: 'Nuevo paciente asignado', message: `Se te asignó un nuevo paciente. Revisa tu agenda.`, type: 'reasignacion' });
+  document.getElementById('panel-reasignacion').style.display = 'none';
+  alert('Paciente reasignado correctamente.');
+}
+
+// Helpers
+function _rolLabel(r) {
+  return r === 'psicologos' ? 'Psicólogo' : r === 'administrativo' ? 'Administrativo' : 'Cliente';
+}
+function _estadoLabel(s) {
+  const m = { active:'Activo', pending:'Pendiente', rejected:'Rechazado', inactive:'Inactivo' };
+  return m[s] || 'Activo';
+}
+function _esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+
+// ------- AGENDA Y CITAS -------
+
+function cambiarTabAgenda(tab, btn) {
+  document.querySelectorAll('#mod-agenda .agenda-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-todas').style.display        = tab === 'todas'         ? 'block' : 'none';
+  document.getElementById('tab-cancelaciones').style.display= tab === 'cancelaciones' ? 'block' : 'none';
+  document.getElementById('tab-reagendaciones').style.display= tab === 'reagendaciones'? 'block' : 'none';
+}
+
+function _getCitas() {
+  // Combinar citas del localStorage con las del JSON estático
+  const ls = JSON.parse(localStorage.getItem('ame_appointments') || '[]');
+  // Normalizar las del JSON local (estructura distinta)
+  const base = [
+    { id:'b1', clienteName:'Ana López',     psicologoNombre:'Dr. Rivera',   date:'2026-06-01', time:'09:30', motivo:'Manejo de ansiedad',  status:'scheduled' },
+    { id:'b2', clienteName:'Carlos Mendoza',psicologoNombre:'Dra. Jiménez', date:'2026-06-03', time:'14:00', motivo:'Terapia de pareja',    status:'scheduled' },
+    { id:'b3', clienteName:'María Torres',  psicologoNombre:'Dr. Rivera',   date:'2026-06-07', time:'11:00', motivo:'Estrés laboral',       status:'completed' },
+  ];
+  // Quitar duplicados por id
+  const lsIds = new Set(ls.map(c => c.id));
+  return [...ls, ...base.filter(b => !lsIds.has(b.id))];
+}
+
+function renderTablaCitas() {
+  const citas = _getCitas();
+  _pintarFilasCitas(citas);
+}
+
+function filtrarCitas() {
+  const q      = document.getElementById('cita-busqueda').value.toLowerCase();
+  const estado = document.getElementById('cita-filtro-estado').value;
+  const citas  = _getCitas().filter(c => {
+    const txt = [(c.clienteName||c.cliente||''), (c.psicologoNombre||c.psicologo||''), (c.motivo||'')].join(' ').toLowerCase();
+    const matchQ = !q || txt.includes(q);
+    const matchE = !estado || c.status === estado;
+    return matchQ && matchE;
+  });
+  _pintarFilasCitas(citas);
+}
+
+function _pintarFilasCitas(lista) {
+  const tbody = document.getElementById('tbody-citas');
+  if (!tbody) return;
+  if (!lista.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="modulo-vacio">No hay citas.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = lista.map(c => `<tr>
+    <td>${_esc(c.clienteName || c.cliente || '—')}</td>
+    <td>${_esc(c.psicologoNombre || c.psicologo || '—')}</td>
+    <td>${_esc(c.date || '—')}</td>
+    <td>${_esc(c.time || '—')}</td>
+    <td>${_esc(c.motivo || '—')}</td>
+    <td><span class="estado-badge estado-${c.status || 'scheduled'}">${_estadoCita(c.status)}</span></td>
+  </tr>`).join('');
+}
+
+function _estadoCita(s) {
+  const m = { scheduled:'Programada', completed:'Completada', cancelled:'Cancelada', pending_cancel:'Pend. cancelación' };
+  return m[s] || s || '—';
+}
+
+function renderSolicitudesCancelacion() {
+  // Leer de localStorage (originadas desde el dashboard de psicólogos)
+  const sol = JSON.parse(localStorage.getItem('ame_solicitudes_cancelacion') || '[]');
+  // Incluir también las del JSON estático
+  const base = [
+    { id:1, psicologoEmail:'rivera@ame.com', paciente:'María Torres Gómez', fechaCita:'2026-06-02', horaCita:'09:00', motivoCancelacion:'Emergencia personal', estado:'pendiente', fechaSolicitud:'2026-06-01' },
+    { id:3, psicologoEmail:'jimenez@ame.com', paciente:'Elena Rodríguez Sánchez', fechaCita:'2026-06-08', horaCita:'10:30', motivoCancelacion:'Paciente no asistirá', estado:'rechazada', fechaSolicitud:'2026-06-02' },
+  ];
+  const lsIds = new Set(sol.map(s => String(s.id)));
+  const todas = [...sol, ...base.filter(b => !lsIds.has(String(b.id)))];
+
+  const pendientes = todas.filter(s => s.estado === 'pendiente').length;
+  const badge = document.getElementById('badge-cancelaciones');
+  if (badge) { badge.textContent = pendientes; badge.style.display = pendientes ? 'inline-block' : 'none'; }
+
+  const contenedor = document.getElementById('lista-cancelaciones');
+  if (!contenedor) return;
+  if (!todas.length) { contenedor.innerHTML = '<div class="modulo-vacio">No hay solicitudes de cancelación.</div>'; return; }
+
+  contenedor.innerHTML = todas.map(s => `
+    <div class="solicitud-card">
+      <div class="sol-header">
+        <div>
+          <strong>${_esc(s.paciente)}</strong>
+          <span class="estado-badge estado-${s.estado}" style="margin-left:8px">${_esc(s.estado)}</span>
+        </div>
+        <span class="sol-meta">Psicólogo: ${_esc(s.psicologoEmail)}</span>
+      </div>
+      <div class="sol-meta">📅 ${_esc(s.fechaCita)} a las ${_esc(s.horaCita)} · Solicitado: ${_esc(s.fechaSolicitud)}</div>
+      <div style="font-size:.88rem;margin-top:4px">Motivo: ${_esc(s.motivoCancelacion)}</div>
+      ${s.estado === 'pendiente' ? `
+        <div class="sol-actions">
+          <button class="btn-accion btn-aprobar" onclick="resolverCancelacion(${s.id},'aprobada')">✓ Aprobar</button>
+          <button class="btn-accion btn-rechazar" onclick="resolverCancelacion(${s.id},'rechazada')">✗ Rechazar</button>
+        </div>
+      ` : ''}
+    </div>
+  `).join('');
+}
+
+function resolverCancelacion(id, accion) {
+  const clave = 'ame_solicitudes_cancelacion';
+  let sol = JSON.parse(localStorage.getItem(clave) || '[]');
+  const idx = sol.findIndex(s => s.id === id);
+  if (idx !== -1) {
+    sol[idx].estado = accion;
+    sol[idx].fechaResolucion = new Date().toISOString().split('T')[0];
+    localStorage.setItem(clave, JSON.stringify(sol));
+  }
+  // Notificación al psicólogo
+  const items = JSON.parse(localStorage.getItem(clave) || '[]');
+  const item = items.find(s => s.id === id) || { psicologoEmail: '', paciente: '', fechaCita: '' };
+  addNotification({
+    recipientEmail: item.psicologoEmail,
+    title: `Cancelación ${accion}`,
+    message: `Tu solicitud de cancelación para la cita con ${item.paciente} el ${item.fechaCita} fue ${accion}.`,
+    type: `cancel_${accion}`
+  });
+  renderSolicitudesCancelacion();
+}
+
+function renderSolicitudesReagendacion() {
+  const sol = JSON.parse(localStorage.getItem('ame_solicitudes_reagendacion') || '[]');
+  const badge = document.getElementById('badge-reagendaciones');
+  const pendientes = sol.filter(s => s.estado === 'pendiente').length;
+  if (badge) { badge.textContent = pendientes; badge.style.display = pendientes ? 'inline-block' : 'none'; }
+
+  const contenedor = document.getElementById('lista-reagendaciones');
+  if (!contenedor) return;
+  if (!sol.length) { contenedor.innerHTML = '<div class="modulo-vacio">No hay solicitudes de reagendación.</div>'; return; }
+
+  contenedor.innerHTML = sol.map(s => `
+    <div class="solicitud-card">
+      <div class="sol-header">
+        <strong>${_esc(s.paciente || '—')}</strong>
+        <span class="estado-badge estado-${s.estado || 'pendiente'}">${_esc(s.estado || 'pendiente')}</span>
+      </div>
+      <div class="sol-meta">Fecha original: ${_esc(s.fechaOriginal || '—')} → Nueva propuesta: ${_esc(s.fechaNueva || '—')}</div>
+      <div style="font-size:.88rem;margin-top:4px">Motivo: ${_esc(s.motivo || '—')}</div>
+      ${s.estado === 'pendiente' ? `
+        <div class="sol-actions">
+          <button class="btn-accion btn-aprobar" onclick="resolverReagendacion('${_esc(s.id)}','aprobada')">✓ Aprobar</button>
+          <button class="btn-accion btn-rechazar" onclick="resolverReagendacion('${_esc(s.id)}','rechazada')">✗ Rechazar</button>
+        </div>
+      ` : ''}
+    </div>
+  `).join('');
+}
+
+function resolverReagendacion(id, accion) {
+  const clave = 'ame_solicitudes_reagendacion';
+  let sol = JSON.parse(localStorage.getItem(clave) || '[]');
+  const idx = sol.findIndex(s => String(s.id) === String(id));
+  if (idx !== -1) { sol[idx].estado = accion; localStorage.setItem(clave, JSON.stringify(sol)); }
+  renderSolicitudesReagendacion();
+}
+
+
+// ------- REPORTES -------
+
+function renderReportes() {
+  const usuarios = getRegisteredUsers();
+  const clientes  = usuarios.filter(u => u.role === 'cliente').length;
+  const psics     = usuarios.filter(u => u.role === 'psicologos').length;
+  const citas     = _getCitas().length;
+  const pendSol   = (JSON.parse(localStorage.getItem('ame_solicitudes_cancelacion') || '[]'))
+                    .filter(s => s.estado === 'pendiente').length;
+  const notifs    = (JSON.parse(localStorage.getItem('ame_notifications') || '[]'))
+                    .filter(n => !n.read).length;
+
+  const kpis = [
+    { numero: usuarios.length, label: 'Total usuarios' },
+    { numero: psics,           label: 'Psicólogos' },
+    { numero: clientes,        label: 'Clientes' },
+    { numero: citas,           label: 'Total citas' },
+    { numero: pendSol,         label: 'Sol. pendientes' },
+    { numero: notifs,          label: 'Notif. sin leer' },
+  ];
+
+  document.getElementById('reportes-kpis').innerHTML = kpis.map(k => `
+    <div class="kpi-card">
+      <div class="kpi-numero">${k.numero}</div>
+      <div class="kpi-label">${k.label}</div>
+    </div>
+  `).join('');
+
+  // Gráfica simple con Canvas
+  const todas = _getCitas();
+  const conteo = { scheduled: 0, completed: 0, cancelled: 0, otro: 0 };
+  todas.forEach(c => {
+    if (conteo[c.status] !== undefined) conteo[c.status]++;
+    else conteo.otro++;
+  });
+  _dibujarGrafica('graficaCitas', [
+    { label: 'Programadas', valor: conteo.scheduled,  color: '#1565c0' },
+    { label: 'Completadas', valor: conteo.completed,  color: '#2e7d32' },
+    { label: 'Canceladas',  valor: conteo.cancelled,  color: '#c62828' },
+    { label: 'Otras',       valor: conteo.otro,        color: '#f57f17' },
+  ]);
+}
+
+function _dibujarGrafica(canvasId, datos) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const max = Math.max(...datos.map(d => d.valor), 1);
+  const barW = Math.floor(W / (datos.length * 2 + 1));
+  const gap  = barW;
+  const maxH = H - 60;
+  const base = H - 30;
+
+  ctx.font = '13px DM Sans, sans-serif';
+  datos.forEach((d, i) => {
+    const x = gap + i * (barW + gap);
+    const h = Math.round((d.valor / max) * maxH);
+    // Barra
+    ctx.fillStyle = d.color;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(x, base - h, barW, h, [4, 4, 0, 0]) : ctx.rect(x, base - h, barW, h);
+    ctx.fill();
+    // Valor
+    ctx.fillStyle = '#333';
+    ctx.textAlign = 'center';
+    ctx.fillText(d.valor, x + barW / 2, base - h - 6);
+    // Label
+    ctx.fillStyle = '#666';
+    ctx.font = '11px DM Sans, sans-serif';
+    ctx.fillText(d.label, x + barW / 2, base + 16);
+    ctx.font = '13px DM Sans, sans-serif';
+  });
+  // Línea base
+  ctx.strokeStyle = '#ddd';
+  ctx.beginPath();
+  ctx.moveTo(0, base);
+  ctx.lineTo(W, base);
+  ctx.stroke();
+}
+
+
+// ------- SOPORTE INTERNO -------
+
+let _filtroBandeja = 'todos';
+
+function cambiarTabSoporte(filtro, btn) {
+  _filtroBandeja = filtro;
+  document.querySelectorAll('#mod-soporte .agenda-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSoporte(filtro);
+}
+
+function _getMensajesSoporte() {
+  const ls = JSON.parse(localStorage.getItem('ame_soporte_mensajes') || '[]');
+  // Mensajes base de ejemplo desde comunicacion.json
+  const base = [
+    { id:'m1', asunto:'Solicitud de cambio de horario', de:'Dr. Rivera', rol:'psicologos', mensaje:'Necesito cambiar disponibilidad los jueves por conferencia.', fecha:'2026-05-30', estado:'respondido', respuesta:'Horario actualizado en el sistema.' },
+    { id:'m2', asunto:'Pregunta sobre la plataforma',    de:'Ana López',  rol:'cliente',    mensaje:'¿Cómo puedo ver mis sesiones pasadas?', fecha:'2026-06-01', estado:'pendiente', respuesta:null },
+    { id:'m3', asunto:'Reporte de error técnico',        de:'Carlos Mendoza', rol:'cliente', mensaje:'La sección de pagos no carga correctamente.', fecha:'2026-06-03', estado:'pendiente', respuesta:null },
+  ];
+  const lsIds = new Set(ls.map(m => m.id));
+  return [...ls, ...base.filter(b => !lsIds.has(b.id))];
+}
+
+function renderSoporte(filtro) {
+  let mensajes = _getMensajesSoporte();
+  if (filtro === 'pendientes')  mensajes = mensajes.filter(m => m.estado === 'pendiente');
+  if (filtro === 'respondidos') mensajes = mensajes.filter(m => m.estado === 'respondido');
+
+  const lista = document.getElementById('lista-soporte');
+  if (!lista) return;
+  if (!mensajes.length) { lista.innerHTML = '<div class="modulo-vacio">No hay mensajes.</div>'; return; }
+
+  lista.innerHTML = mensajes.map(m => `
+    <div class="mensaje-card ${m.estado === 'pendiente' ? 'no-leido' : ''}">
+      <div class="msg-header">
+        <div>
+          <span class="msg-asunto">${_esc(m.asunto)}</span>
+          <span class="estado-badge estado-${m.estado === 'pendiente' ? 'pending' : 'active'}" style="margin-left:8px;font-size:.75rem">
+            ${m.estado === 'pendiente' ? 'Pendiente' : 'Respondido'}
+          </span>
+        </div>
+        <span class="msg-de">De: ${_esc(m.de)} (${m.rol === 'psicologos' ? 'Psicólogo' : 'Cliente'}) · ${_esc(m.fecha)}</span>
+      </div>
+      <div class="msg-body">${_esc(m.mensaje)}</div>
+      ${m.respuesta ? `<div class="msg-respuesta">↩ ${_esc(m.respuesta)}</div>` : ''}
+      ${m.estado === 'pendiente' ? `<button class="btn-accion btn-resp" onclick="abrirRespuesta('${_esc(m.id)}')">Responder</button>` : ''}
+    </div>
+  `).join('');
+}
+
+let _msgResponderId = null;
+
+function abrirRespuesta(id) {
+  _msgResponderId = id;
+  const m = _getMensajesSoporte().find(x => x.id === id);
+  if (!m) return;
+  document.getElementById('resp-asunto').textContent = m.asunto;
+  document.getElementById('resp-mensaje-original').textContent = m.mensaje;
+  document.getElementById('resp-texto').value = '';
+  document.getElementById('modal-respuesta').style.display = 'flex';
+}
+
+function enviarRespuesta() {
+  const texto = document.getElementById('resp-texto').value.trim();
+  if (!texto) return alert('Escribe una respuesta antes de enviar.');
+  let mensajes = JSON.parse(localStorage.getItem('ame_soporte_mensajes') || '[]');
+  const idx = mensajes.findIndex(m => m.id === _msgResponderId);
+  if (idx !== -1) {
+    mensajes[idx].estado    = 'respondido';
+    mensajes[idx].respuesta = texto;
+  } else {
+    // Si era del base de ejemplo, clonar y guardar
+    const base = _getMensajesSoporte().find(m => m.id === _msgResponderId);
+    if (base) {
+      const clon = { ...base, estado: 'respondido', respuesta: texto };
+      mensajes.push(clon);
+    }
+  }
+  localStorage.setItem('ame_soporte_mensajes', JSON.stringify(mensajes));
+  document.getElementById('modal-respuesta').style.display = 'none';
+  renderSoporte(_filtroBandeja);
+}
   </script>
 
 </body>
