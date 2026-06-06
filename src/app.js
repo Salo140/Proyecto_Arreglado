@@ -22,13 +22,7 @@ const citasRoutes = require('./routes/citas');
 app.use('/api/citas', citasRoutes);
 
 app.get('/', (req, res) => {
-  res.json({
-    mensaje: 'API de citas funcionando',
-    version: '1.0.0',
-    endpoints: {
-      citas: '/api/citas'
-    }
-  });
+  res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 app.use((req, res) => {

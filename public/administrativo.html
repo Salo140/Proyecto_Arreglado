@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administrativo — Âme</title>
+  <link rel="stylesheet" href="assets/styles.css">
+  <script>
+    // Verificar que el usuario está autenticado
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser || currentUser.role !== 'administrativo') {
+      window.location.href = 'login.html';
+    }
+  </script>
+</head>
+<body data-role="administrativo">
+
+  <header class="navbar">
+    <h1 class="logo">Âme</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="login.html">Cerrar sesión</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="dashboard">
+    <div class="dashboard-hero">
+      <h2>Área Administrativa 🗂️</h2>
+      <p>Gestiona usuarios, citas y seguimiento de la plataforma desde un solo lugar.</p>
+    </div>
+
+    <div class="dashboard-grid">
+      <article class="info-card" data-section="usuarios">
+        <h3>👥 Gestión de usuarios</h3>
+        <p>Revisa perfiles de clientes y psicólogos, y controla el acceso a los servicios.</p>
+      </article>
+      <article class="info-card" data-section="citas">
+        <h3>📅 Agenda y citas</h3>
+        <p>Supervisa las sesiones programadas, confirma asistencias y actualiza horarios.</p>
+      </article>
+      <article class="info-card" data-section="reportes">
+        <h3>📊 Reportes</h3>
+        <p>Estadísticas de usuarios, citas agendadas, especialidades y actividad general de la plataforma.</p>
+      </article>
+      <article class="info-card" data-section="soporte">
+        <h3>🔧 Soporte interno</h3>
+        <p>Controla solicitudes y coordina al equipo de psicólogos y administración.</p>
+      </article>
+    </div>
+
+    <section class="admin-panel">
+      <h3>Solicitudes de psicólogos</h3>
+      <p id="adminApprovalMessage">Revisa los documentos y certificados antes de aprobar el acceso.</p>
+      <div id="pendingPsychologists" class="admin-request-list"></div>
+    </section>
+
+    <section class="notifications-panel">
+      <h3>Notificaciones</h3>
+      <p id="notifAdminMessage">Solicitudes y mensajes pendientes.</p>
+      <ul id="notificationsList" class="citas-list"></ul>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Âme — Plataforma de bienestar emocional</p>
+  </footer>
+
+  <script src="assets/dashboard.js" defer></script>
+
+  <script>
+    // Actualizar información del admin desde localStorage
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      
+      if (currentUser) {
+        // Actualizar atributo data-admin
+        document.body.setAttribute('data-admin', currentUser.name || 'Administrativo');
+      }
+    });
+
+    function getRegisteredUsers() {
+      return JSON.parse(localStorage.getItem('ame_users')) || [];
+    }
+
+    function saveRegisteredUsers(users) {
+      localStorage.setItem('ame_users', JSON.stringify(users));
+    }
+
+    function renderPendingPsychologists() {
+      const container = document.getElementById('pendingPsychologists');
+      const users = getRegisteredUsers();
+      const pending = users.filter(user => user.role === 'psicologos' && user.status === 'pending');
+
+      if (!container) return;
+      if (pending.length === 0) {
+        container.innerHTML = '<div class="empty-state">No hay solicitudes de psicólogos pendientes en este momento.</div>';
+        return;
+      }
+
+      container.innerHTML = pending.map(user => `
+        <div class="admin-request-card">
+          <div class="admin-request-header">
+            <strong>${user.name}</strong>
+            <span class="status pending">Pendiente</span>
+          </div>
+          <div class="admin-request-body">
+            <p><strong>Correo:</strong> ${user.email}</p>
+            <p><strong>Especialidad:</strong> ${user.specialty || 'No especificada'}</p>
+            <p><strong>Certificado:</strong> ${user.certificate || 'No especificado'}</p>
+            <p><strong>Años de experiencia:</strong> ${user.experience || 'No especificado'}</p>
+            <p><strong>Institución:</strong> ${user.institution || 'No especificado'}</p>
+            <p><strong>Documentos:</strong> ${user.docs || 'No especificado'}</p>
+          </div>
+          <div class="admin-request-actions">
+            <button class="btn btn-approve" data-action="approve" data-id="${user.id}">Aprobar</button>
+            <button class="btn btn-reject" data-action="reject" data-id="${user.id}">Rechazar</button>
+          </div>
+        </div>
+      `).join('');
+
+      container.querySelectorAll('button[data-id]').forEach(button => {
+        button.addEventListener('click', (event) => {
+          const id = event.target.dataset.id;
+          const action = event.target.dataset.action;
+          handlePsychologistReview(id, action);
+        });
+      });
+    }
+
+    function handlePsychologistReview(id, action) {
+      const users = getRegisteredUsers();
+      const index = users.findIndex(user => user.id === id);
+      if (index === -1) return;
+
+      if (action === 'approve') {
+        users[index].verified = true;
+        users[index].status = 'active';
+        users[index].rejected = false;
+        users[index].reviewNotes = 'Aprobado por administrador';
+      } else if (action === 'reject') {
+        const reason = prompt('Agrega una razón breve para el rechazo (opcional):');
+        users[index].verified = false;
+        users[index].status = 'rejected';
+        users[index].rejected = true;
+        users[index].reviewNotes = reason ? reason.trim() : 'Rechazado por administrador';
+      }
+
+      saveRegisteredUsers(users);
+      renderPendingPsychologists();
+      alert(`Solicitud de psicólogo ${action === 'approve' ? 'aprobada' : 'rechazada'} correctamente.`);
+    }
+
+    // --- Notifications helper functions ---
+    function getNotifications() {
+      return JSON.parse(localStorage.getItem('ame_notifications')) || [];
+    }
+
+    function saveNotifications(notes) {
+      localStorage.setItem('ame_notifications', JSON.stringify(notes));
+    }
+
+    function addNotification(note) {
+      const notes = getNotifications();
+      note.id = 'n_' + Date.now();
+      note.createdAt = new Date().toISOString();
+      note.read = false;
+      notes.push(note);
+      saveNotifications(notes);
+      window.dispatchEvent(new Event('storage'));
+      return note;
+    }
+
+    function getAppointments() {
+      return JSON.parse(localStorage.getItem('ame_appointments')) || [];
+    }
+
+    function saveAppointments(list) {
+      localStorage.setItem('ame_appointments', JSON.stringify(list));
+      window.dispatchEvent(new Event('storage'));
+    }
+
+    function renderNotifications() {
+      const list = document.getElementById('notificationsList');
+      if (!list) return;
+      const currentUser = JSON.parse(localStorage.getItem('currentUser')) || {};
+      const notes = getNotifications().filter(n => (n.recipientRole && n.recipientRole === 'administrativo') || n.recipientEmail === currentUser.email);
+      if (notes.length === 0) {
+        list.innerHTML = '<li class="empty-state">No hay notificaciones.</li>';
+        return;
+      }
+      list.innerHTML = '';
+      notes.forEach(n => {
+        const li = document.createElement('li');
+        li.style.padding = '12px'; li.style.border = '1px solid #eee'; li.style.marginBottom = '8px'; li.style.borderRadius = '10px';
+        li.innerHTML = `<strong>${n.title || 'Notificación'}</strong><br>${n.message || ''}<br><small>${new Date(n.createdAt).toLocaleString()}</small>`;
+        if (n.type === 'cancel_request' && n.relatedAppointmentId) {
+          const btns = document.createElement('div'); btns.style.marginTop = '8px';
+          const approve = document.createElement('button'); approve.textContent = 'Aprobar cancelación'; approve.style.marginRight = '8px';
+          const reject = document.createElement('button'); reject.textContent = 'Rechazar solicitud';
+          approve.addEventListener('click', () => openCancelModal(n.relatedAppointmentId, n.id));
+          reject.addEventListener('click', () => handleAdminCancelRequest(n.relatedAppointmentId, n.id, false));
+          btns.appendChild(approve); btns.appendChild(reject);
+          li.appendChild(btns);
+        }
+        list.appendChild(li);
+      });
+    }
+
+    function handleAdminCancelRequest(appointmentId, notificationId, approve) {
+      const appts = getAppointments();
+      const idx = appts.findIndex(a => a.id === appointmentId);
+      if (idx === -1) return alert('Cita no encontrada.');
+      const note = getNotifications();
+      const noteIdx = note.findIndex(n => n.id === notificationId);
+      if (!approve) {
+        // reject request: set back to scheduled
+        appts[idx].status = 'scheduled';
+        saveAppointments(appts);
+        if (noteIdx !== -1) {
+          const notif = getNotifications();
+          const requester = notif[noteIdx];
+          if (requester && requester.fromEmail) addNotification({ recipientEmail: requester.fromEmail, title: 'Solicitud rechazada', message: `Tu solicitud de cancelación para la cita del ${appts[idx].date} a las ${appts[idx].time} fue rechazada.`, type: 'cancel_rejected', relatedAppointmentId: appointmentId });
+        }
+        alert('Solicitud de cancelación rechazada.');
+      }
+      // remove processed notification
+      const notes = getNotifications().filter(n => n.id !== notificationId);
+      saveNotifications(notes);
+      renderNotifications();
+      renderPendingPsychologists();
+    }
+
+    // --- Admin modal for approving cancellation ---
+    function openCancelModal(appointmentId, notificationId) {
+      let modal = document.getElementById('adminCancelModal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'adminCancelModal';
+        modal.style.position = 'fixed'; modal.style.inset = '0'; modal.style.background = 'rgba(0,0,0,0.5)'; modal.style.display='flex'; modal.style.alignItems='center'; modal.style.justifyContent='center'; modal.style.zIndex='2000';
+        modal.innerHTML = `
+          <div style="background:#fff;padding:20px;border-radius:12px;max-width:520px;width:100%">
+            <h3>Confirmar cancelación</h3>
+            <p>Proporciona un motivo para la cancelación y selecciona si aplica reembolso.</p>
+            <div style="margin-top:8px">
+              <label>Motivo (opcional)</label>
+              <textarea id="adminCancelReason" style="width:100%;height:80px;padding:8px;margin-top:6px"></textarea>
+            </div>
+            <div style="margin-top:8px">
+              <label><input type="checkbox" id="adminRefund"> Marcar reembolso</label>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
+              <button id="adminCancelClose">Cerrar</button>
+              <button id="adminCancelConfirm" style="background:#e63946;color:#fff;border:none;padding:8px 12px;border-radius:8px;">Confirmar y notificar</button>
+            </div>
+          </div>`;
+        document.body.appendChild(modal);
+        document.getElementById('adminCancelClose').addEventListener('click', closeCancelModal);
+        document.getElementById('adminCancelConfirm').addEventListener('click', function(){
+          const reason = document.getElementById('adminCancelReason').value.trim();
+          const refund = document.getElementById('adminRefund').checked;
+          processAdminCancel(appointmentId, notificationId, reason, refund);
+        });
+      } else {
+        modal.style.display = 'flex';
+      }
+    }
+
+    function closeCancelModal() {
+      const modal = document.getElementById('adminCancelModal'); if (modal) modal.style.display = 'none';
+    }
+
+    function processAdminCancel(appointmentId, notificationId, reason, refund) {
+      const appts = getAppointments();
+      const idx = appts.findIndex(a => a.id === appointmentId);
+      if (idx === -1) return alert('Cita no encontrada.');
+      appts[idx].status = 'cancelled';
+      appts[idx].cancelledBy = 'administrativo';
+      appts[idx].cancelledAt = new Date().toISOString();
+      appts[idx].cancelReason = reason || 'Cancelada por administrador';
+      appts[idx].refund = refund === true;
+      saveAppointments(appts);
+      // notify client and psicologo with details
+      addNotification({ recipientEmail: appts[idx].clienteEmail, title: 'Cita cancelada', message: `Tu cita del ${appts[idx].date} a las ${appts[idx].time} fue cancelada por el administrador. Motivo: ${appts[idx].cancelReason}. ${appts[idx].refund ? 'Se procesará un reembolso.' : ''}`, type: 'cancelled', relatedAppointmentId: appointmentId });
+      if (appts[idx].psicologoEmail) addNotification({ recipientEmail: appts[idx].psicologoEmail, title: 'Cita cancelada', message: `Se canceló la cita con ${appts[idx].clienteName} el ${appts[idx].date} a las ${appts[idx].time}. Motivo: ${appts[idx].cancelReason}.`, type: 'cancelled', relatedAppointmentId: appointmentId });
+
+      // remove processed notification
+      const notes = getNotifications().filter(n => n.id !== notificationId);
+      saveNotifications(notes);
+      renderNotifications();
+      renderPendingPsychologists();
+      closeCancelModal();
+      alert('Cita cancelada y notificaciones enviadas.');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      renderNotifications();
+    });
+
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'ame_notifications' || e.key === 'ame_appointments') renderNotifications();
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+      renderPendingPsychologists();
+      
+      // Agregar funcionalidad a las tarjetas del dashboard
+      const infoCards = document.querySelectorAll('.info-card');
+      infoCards.forEach(card => {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', function() {
+          const section = this.dataset.section;
+          
+          if (section === 'usuarios') {
+            window.location.href = 'usuarios-admin.html';
+            return;
+          }
+          
+          if (section === 'citas') {
+            window.location.href = 'citas-admin.html';
+            return;
+          }
+
+          if (section === 'reportes') {
+            window.location.href = 'reportes-admin.html';
+            return;
+          }
+          
+          const scrollTargets = {
+            'soporte': document.querySelector('.notifications-panel')
+          };
+          
+          if (scrollTargets[section]) {
+            scrollTargets[section].scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      });
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Panel — Âme</title>
+  <link rel="stylesheet" href="assets/styles.css">
+  <script>
+    // Verificar que el usuario está autenticado
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) {
+      window.location.href = 'login.html';
+    }
+  </script>
+</head>
+<body data-role="cliente" data-cliente="Usuario">
+
+  <header class="navbar">
+    <h1 class="logo">Âme</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="meditaciones.html">Recursos</a></li>
+        <li><a href="comunidad.html">Comunidad</a></li>
+        <li><a href="login.html">Cerrar sesión</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="dashboard">
+
+    <!-- Bienvenida -->
+    <div class="dashboard-hero">
+      <h2 id="welcomeTitle">Bienvenida, Usuario 👋</h2>
+      <p>Este es tu espacio personal de bienestar. Aquí encuentras recursos, apoyo de la comunidad y tu asistente IA.</p>
+    </div>
+
+    <!-- Accesos rápidos -->
+    <div class="dashboard-grid">
+      <article class="info-card" onclick="window.location.href='meditaciones.html'">
+        <h3>🧘 Recursos personales</h3>
+        <p>Meditaciones guiadas, ejercicios de respiración y artículos de salud mental.</p>
+      </article>
+      <article class="info-card" onclick="window.location.href='comunidad.html'">
+        <h3>🤝 Comunidad</h3>
+        <p>Comparte experiencias y recibe apoyo en un entorno seguro y confidencial.</p>
+      </article>
+      <article class="info-card highlight-card" onclick="document.getElementById('ia-inline-section').scrollIntoView({behavior:'smooth'})">
+        <h3>💙 Asistente IA</h3>
+        <p>Habla con Âme ahora. Escucha empática disponible 24/7, justo aquí abajo.</p>
+      </article>
+      <article class="info-card" onclick="window.location.href='sesiones.html'">
+        <h3>📅 Sesiones</h3>
+        <p>Agenda y gestiona tus citas con psicólogos certificados.</p>
+      </article>
+    </div>
+
+    <!-- Panel de citas -->
+    <section class="citas-panel">
+      <h3>Próximas citas</h3>
+      <p id="citasMessage">Las citas se cargan desde la API local. Ejecuta <code>npm run dev</code> para verlas.</p>
+      <ul id="citasList" class="citas-list"></ul>
+    </section>
+
+    <!-- ============================================
+         CHAT IA INLINE — Completamente integrado
+         ============================================ -->
+    <section id="ia-inline-section" class="ia-inline-section">
+
+      <!-- Header -->
+      <div class="ia-inline-header">
+        <div class="ia-inline-header-icon">💙</div>
+        <div class="ia-inline-header-text">
+          <h3>Âme — Asistente IA</h3>
+          <p>Tu espacio de apoyo emocional. No reemplaza la terapia profesional.</p>
+        </div>
+      </div>
+
+      <div class="ia-inline-body">
+
+        <!-- Mensajes -->
+        <div id="ia-inline-messages" class="ia-inline-messages" role="log" aria-live="polite">
+          <div class="ia-message ia-bot-message ia-welcome">
+            <p id="iaChatGreeting">👋 Hola Usuario. Estoy aquí para escucharte. ¿Cómo te sientes hoy?</p>
+          </div>
+        </div>
+
+        <!-- Alerta de crisis -->
+        <div id="ia-inline-crisis" class="ia-inline-crisis" role="alert">
+          <div class="ia-crisis-header">🚨 Ayuda profesional disponible</div>
+          <p class="ia-crisis-text">
+            Parece que estás pasando por un momento muy difícil. <strong>No estás sola.</strong>
+          </p>
+          <div id="ia-inline-emergency-lines" class="ia-emergency-lines"></div>
+          <p style="font-size:0.8rem;margin-top:8px;color:#c62828;">
+            ⚠️ Soy una IA. Por favor contacta ayuda profesional.
+          </p>
+        </div>
+
+        <!-- Input -->
+        <div class="ia-inline-input-area">
+          <div class="ia-inline-country">
+            <label for="ia-inline-country">País:</label>
+            <select id="ia-inline-country">
+              <option value="colombia">Colombia 🇨🇴</option>
+              <option value="mexico">México 🇲🇽</option>
+              <option value="argentina">Argentina 🇦🇷</option>
+              <option value="peru">Perú 🇵🇪</option>
+              <option value="chile">Chile 🇨🇱</option>
+              <option value="brasil">Brasil 🇧🇷</option>
+              <option value="spain">España 🇪🇸</option>
+              <option value="usa">USA 🇺🇸</option>
+              <option value="ecuador">Ecuador 🇪🇨</option>
+              <option value="venezuela">Venezuela 🇻🇪</option>
+              <option value="mundial">Internacional 🌍</option>
+            </select>
+          </div>
+          <div class="ia-inline-row">
+            <input
+              type="text"
+              id="ia-inline-input"
+              class="ia-inline-input"
+              placeholder="Escribe tu mensaje..."
+              autocomplete="off"
+              aria-label="Mensaje para el asistente IA"
+            >
+            <button id="ia-inline-send" class="ia-inline-send" aria-label="Enviar">
+              ↑ Enviar
+            </button>
+          </div>
+        </div>
+
+        <div class="ia-inline-footer">
+          <small>ℹ️ Este chat <strong>no reemplaza</strong> la terapia profesional. Si estás en crisis, usa el selector de país para ver líneas de emergencia.</small>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Âme — Plataforma de bienestar emocional</p>
+  </footer>
+
+  <script src="assets/dashboard.js" defer></script>
+  <script src="assets/ia-chat.js" defer></script>
+  <script src="assets/emergency-lines.js" defer></script>
+
+  <script>
+    // Actualizar nombre del usuario desde localStorage
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+      
+      if (currentUser && currentUser.name) {
+        const firstName = currentUser.name.split(' ')[0];
+        
+        // Actualizar saludo principal
+        const welcomeTitle = document.getElementById('welcomeTitle');
+        if (welcomeTitle) {
+          welcomeTitle.textContent = `Bienvenida, ${firstName} 👋`;
+        }
+        
+        // Actualizar saludo del chat
+        const iaChatGreeting = document.getElementById('iaChatGreeting');
+        if (iaChatGreeting) {
+          iaChatGreeting.textContent = `👋 Hola ${firstName}. Estoy aquí para escucharte. ¿Cómo te sientes hoy?`;
+        }
+        
+        // Actualizar atributo data-cliente
+        document.body.setAttribute('data-cliente', currentUser.name);
+      }
+    });
+  </script>
+
+</body>
+</html>

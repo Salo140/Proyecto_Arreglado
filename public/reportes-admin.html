@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reportes — Âme</title>
+  <link rel="stylesheet" href="assets/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Verificar autenticación
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser || currentUser.role !== 'administrativo') {
+      window.location.href = 'login.html';
+    }
+  </script>
+  <style>
+    .reports-container {
+      padding: 40px 48px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      border-left: 4px solid var(--green);
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--green);
+      margin-bottom: 6px;
+    }
+
+    .stat-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-mid);
+    }
+
+    .stat-card.warning {
+      border-left-color: #ff9800;
+    }
+
+    .stat-card.warning .stat-value {
+      color: #ff9800;
+    }
+
+    .stat-card.success {
+      border-left-color: #4caf50;
+    }
+
+    .stat-card.success .stat-value {
+      color: #4caf50;
+    }
+
+    .stat-card.info {
+      border-left-color: #2196f3;
+    }
+
+    .stat-card.info .stat-value {
+      color: #2196f3;
+    }
+
+    .charts-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 28px;
+      margin-bottom: 40px;
+    }
+
+    .chart-card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .chart-card h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 280px;
+    }
+
+    .activity-section {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .activity-section h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 20px;
+    }
+
+    .activity-list {
+      list-style: none;
+    }
+
+    .activity-item {
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.95rem;
+    }
+
+    .activity-item:last-child {
+      border-bottom: none;
+    }
+
+    .activity-label {
+      color: var(--text-mid);
+    }
+
+    .activity-value {
+      font-weight: 600;
+      color: var(--green);
+    }
+
+    .empty-message {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-light);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="navbar">
+    <h1 class="logo">Âme</h1>
+    <nav>
+      <ul>
+        <li><a href="administrativo.html">← Volver</a></li>
+        <li><a href="login.html">Cerrar sesión</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="dashboard reports-container">
+    <div class="dashboard-hero">
+      <h2>📊 Reportes de Plataforma</h2>
+      <p>Visualiza estadísticas, actividad de usuarios y métricas clave del sistema.</p>
+    </div>
+
+    <!-- Tarjetas de estadísticas principales -->
+    <section class="stats-grid" id="statsGrid">
+      <!-- Se llenará dinámicamente con JavaScript -->
+    </section>
+
+    <!-- Sección de gráficos -->
+    <section class="charts-section" id="chartsSection">
+      <!-- Se llenará dinámicamente con JavaScript -->
+    </section>
+
+    <!-- Actividad reciente -->
+    <section class="activity-section">
+      <h3>📈 Actividad Reciente de Usuarios</h3>
+      <ul class="activity-list" id="activityList">
+        <li class="empty-message">Cargando datos...</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Âme — Plataforma de bienestar emocional</p>
+  </footer>
+
+  <script>
+    let allUsers = [];
+    let allAppointments = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+      loadData();
+      renderReports();
+    });
+
+    function loadData() {
+      allUsers = JSON.parse(localStorage.getItem('ame_users')) || [];
+      allAppointments = JSON.parse(localStorage.getItem('ame_appointments')) || [];
+    }
+
+    function renderReports() {
+      renderStats();
+      renderCharts();
+      renderActivity();
+    }
+
+    function renderStats() {
+      const container = document.getElementById('statsGrid');
+      
+      const totalClients = allUsers.filter(u => u.role === 'cliente').length;
+      const totalPsychologists = allUsers.filter(u => u.role === 'psicologos').length;
+      const verifiedPsychologists = allUsers.filter(u => u.role === 'psicologos' && u.verified).length;
+      const pendingPsychologists = allUsers.filter(u => u.role === 'psicologos' && u.status === 'pending').length;
+      const totalAppointments = allAppointments.length;
+      const scheduledAppointments = allAppointments.filter(a => a.status === 'scheduled').length;
+      const cancelledAppointments = allAppointments.filter(a => a.status === 'cancelled').length;
+
+      const stats = [
+        {
+          label: 'Clientes Registrados',
+          value: totalClients,
+          subtitle: 'Usuarios activos',
+          class: 'info'
+        },
+        {
+          label: 'Psicólogos Registrados',
+          value: totalPsychologists,
+          subtitle: `${verifiedPsychologists} verificados`,
+          class: 'success'
+        },
+        {
+          label: 'Psicólogos Pendientes',
+          value: pendingPsychologists,
+          subtitle: 'Awaiting approval',
+          class: 'warning'
+        },
+        {
+          label: 'Total de Citas',
+          value: totalAppointments,
+          subtitle: `${scheduledAppointments} agendadas`,
+          class: ''
+        },
+        {
+          label: 'Citas Canceladas',
+          value: cancelledAppointments,
+          subtitle: 'En este período',
+          class: 'warning'
+        }
+      ];
+
+      container.innerHTML = stats.map(stat => `
+        <div class="stat-card ${stat.class}">
+          <div class="stat-label">${stat.label}</div>
+          <div class="stat-value">${stat.value}</div>
+          <div class="stat-subtitle">${stat.subtitle}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderCharts() {
+      const container = document.getElementById('chartsSection');
+      
+      const clientCount = allUsers.filter(u => u.role === 'cliente').length;
+      const psychologistCount = allUsers.filter(u => u.role === 'psicologos').length;
+      const verifiedPsycho = allUsers.filter(u => u.role === 'psicologos' && u.verified).length;
+      const pendingPsycho = allUsers.filter(u => u.role === 'psicologos' && u.status === 'pending').length;
+      const rejectedPsycho = allUsers.filter(u => u.role === 'psicologos' && u.status === 'rejected').length;
+
+      const specialties = {};
+      allUsers.filter(u => u.role === 'psicologos').forEach(psy => {
+        if (psy.specialty) {
+          specialties[psy.specialty] = (specialties[psy.specialty] || 0) + 1;
+        }
+      });
+
+      const appointmentStatus = {
+        scheduled: allAppointments.filter(a => a.status === 'scheduled').length,
+        cancelled: allAppointments.filter(a => a.status === 'cancelled').length,
+        completed: allAppointments.filter(a => a.status === 'completed').length
+      };
+
+      container.innerHTML = `
+        <!-- Gráfico de Distribución de Usuarios -->
+        <div class="chart-card">
+          <h3>👥 Distribución de Usuarios</h3>
+          <div class="chart-container">
+            <canvas id="userDistributionChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Gráfico de Estado de Psicólogos -->
+        <div class="chart-card">
+          <h3>🧠 Estado de Psicólogos</h3>
+          <div class="chart-container">
+            <canvas id="psychologistStatusChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Gráfico de Especialidades -->
+        <div class="chart-card">
+          <h3>📚 Especialidades Registradas</h3>
+          <div class="chart-container">
+            <canvas id="specialtiesChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Gráfico de Citas -->
+        <div class="chart-card">
+          <h3>📅 Estado de Citas</h3>
+          <div class="chart-container">
+            <canvas id="appointmentsChart"></canvas>
+          </div>
+        </div>
+      `;
+
+      // Gráfico de Distribución de Usuarios
+      const ctxUser = document.getElementById('userDistributionChart').getContext('2d');
+      new Chart(ctxUser, {
+        type: 'doughnut',
+        data: {
+          labels: ['Clientes', 'Psicólogos'],
+          datasets: [{
+            data: [clientCount, psychologistCount],
+            backgroundColor: ['#66bb6a', '#2196f3'],
+            borderColor: '#fff',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { usePointStyle: true, padding: 15 }
+            }
+          }
+        }
+      });
+
+      // Gráfico de Estado de Psicólogos
+      const ctxPsycho = document.getElementById('psychologistStatusChart').getContext('2d');
+      new Chart(ctxPsycho, {
+        type: 'bar',
+        data: {
+          labels: ['Verificados', 'Pendientes', 'Rechazados'],
+          datasets: [{
+            label: 'Psicólogos',
+            data: [verifiedPsycho, pendingPsycho, rejectedPsycho],
+            backgroundColor: ['#4caf50', '#ff9800', '#f44336'],
+            borderRadius: 6,
+            borderWidth: 0
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { beginAtZero: true, ticks: { stepSize: 1 } }
+          }
+        }
+      });
+
+      // Gráfico de Especialidades
+      if (Object.keys(specialties).length > 0) {
+        const ctxSpec = document.getElementById('specialtiesChart').getContext('2d');
+        new Chart(ctxSpec, {
+          type: 'bar',
+          data: {
+            labels: Object.keys(specialties),
+            datasets: [{
+              label: 'Psicólogos',
+              data: Object.values(specialties),
+              backgroundColor: '#2e7d32',
+              borderRadius: 6,
+              borderWidth: 0
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { beginAtZero: true, ticks: { stepSize: 1 } }
+            }
+          }
+        });
+      } else {
+        document.getElementById('specialtiesChart').parentElement.innerHTML = 
+          '<div class="empty-message">Sin datos de especialidades</div>';
+      }
+
+      // Gráfico de Citas
+      const ctxAppt = document.getElementById('appointmentsChart').getContext('2d');
+      new Chart(ctxAppt, {
+        type: 'doughnut',
+        data: {
+          labels: ['Agendadas', 'Canceladas', 'Completadas'],
+          datasets: [{
+            data: [appointmentStatus.scheduled, appointmentStatus.cancelled, appointmentStatus.completed],
+            backgroundColor: ['#2196f3', '#f44336', '#4caf50'],
+            borderColor: '#fff',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { usePointStyle: true, padding: 15 }
+            }
+          }
+        }
+      });
+    }
+
+    function renderActivity() {
+      const container = document.getElementById('activityList');
+      
+      // Últimos 5 usuarios registrados
+      const recentUsers = [...allUsers]
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 5);
+
+      if (recentUsers.length === 0) {
+        container.innerHTML = '<li class="empty-message">No hay actividad de usuarios registrada</li>';
+        return;
+      }
+
+      container.innerHTML = recentUsers.map(user => {
+        const date = new Date(user.createdAt).toLocaleDateString('es-CO', {
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        const roleText = user.role === 'psicologos' ? '🧠 Psicólogo' : '💙 Cliente';
+        return `
+          <li class="activity-item">
+            <div>
+              <span class="activity-label">${user.name}</span>
+              <br>
+              <span style="font-size: 0.85rem; color: var(--text-light);">${roleText} • ${date}</span>
+            </div>
+          </li>
+        `;
+      }).join('');
+    }
+
+    // Actualizar datos en tiempo real con eventos de storage
+    window.addEventListener('storage', function(e) {
+      if (e.key === 'ame_users' || e.key === 'ame_appointments') {
+        loadData();
+        renderReports();
+      }
+    });
+  </script>
+
+</body>
+</html>

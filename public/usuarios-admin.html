@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Usuarios — Âme</title>
+  <link rel="stylesheet" href="assets/styles.css">
+  <script>
+    // Verificar autenticación
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser || currentUser.role !== 'administrativo') {
+      window.location.href = 'login.html';
+    }
+  </script>
+  <style>
+    .user-tabs {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 28px;
+      border-bottom: 2px solid #eee;
+    }
+    
+    .user-tab-btn {
+      padding: 12px 24px;
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: var(--text-mid);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.95rem;
+    }
+    
+    .user-tab-btn.active {
+      color: var(--green);
+      border-bottom-color: var(--green);
+    }
+    
+    .user-tab-btn:hover:not(.active) {
+      color: var(--green-light);
+    }
+    
+    .users-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    
+    .user-card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      border-left: 4px solid var(--green-light);
+      transition: all 0.3s ease;
+    }
+    
+    .user-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+    
+    .user-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--green-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      color: var(--white);
+      margin-bottom: 12px;
+    }
+    
+    .user-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+    
+    .user-role {
+      font-size: 0.85rem;
+      color: var(--green);
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+    
+    .user-info {
+      font-size: 0.9rem;
+      color: var(--text-mid);
+      margin-bottom: 8px;
+    }
+    
+    .user-status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+    
+    .status-active {
+      background: #d4edda;
+      color: #155724;
+    }
+    
+    .status-pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+    
+    .status-rejected {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    
+    .user-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    
+    .user-action-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-approve {
+      background: #28a745;
+      color: white;
+    }
+    
+    .btn-approve:hover {
+      background: #218838;
+    }
+    
+    .btn-reject {
+      background: #dc3545;
+      color: white;
+    }
+    
+    .btn-reject:hover {
+      background: #c82333;
+    }
+    
+    .btn-view {
+      background: var(--green);
+      color: white;
+    }
+    
+    .btn-view:hover {
+      background: var(--green-mid);
+    }
+    
+    .empty-state {
+      grid-column: 1 / -1;
+      padding: 40px;
+      text-align: center;
+      color: var(--text-light);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="navbar">
+    <h1 class="logo">Âme</h1>
+    <nav>
+      <ul>
+        <li><a href="administrativo.html">← Volver</a></li>
+        <li><a href="login.html">Cerrar sesión</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="dashboard" style="padding: 40px 48px;">
+    <div class="dashboard-hero">
+      <h2>👥 Gestión de Usuarios</h2>
+      <p>Visualiza y gestiona todos los perfiles de clientes y psicólogos registrados en la plataforma.</p>
+    </div>
+
+    <section style="background: var(--white); border-radius: var(--radius-md); padding: 28px; box-shadow: var(--shadow-sm);">
+      <!-- Tabs -->
+      <div class="user-tabs">
+        <button class="user-tab-btn active" data-tab="psicologos">
+          🧠 Psicólogos <span id="psico-count" style="margin-left: 6px; opacity: 0.7;">(0)</span>
+        </button>
+        <button class="user-tab-btn" data-tab="cliente">
+          💙 Clientes <span id="cliente-count" style="margin-left: 6px; opacity: 0.7;">(0)</span>
+        </button>
+      </div>
+
+      <!-- Contenedor de usuarios -->
+      <div id="usersContainer" class="users-grid">
+        <div class="empty-state">Cargando usuarios...</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Âme — Plataforma de bienestar emocional</p>
+  </footer>
+
+  <script>
+    let currentTab = 'psicologos';
+    let allUsers = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Cargar usuarios
+      loadUsers();
+
+      // Event listeners para tabs
+      document.querySelectorAll('.user-tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('.user-tab-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          currentTab = this.dataset.tab;
+          renderUsers();
+        });
+      });
+    });
+
+    function loadUsers() {
+      allUsers = JSON.parse(localStorage.getItem('ame_users')) || [];
+      renderUsers();
+    }
+
+    function renderUsers() {
+      const container = document.getElementById('usersContainer');
+      const filteredUsers = allUsers.filter(u => u.role === currentTab);
+
+      // Actualizar contadores
+      const psicoCount = allUsers.filter(u => u.role === 'psicologos').length;
+      const clienteCount = allUsers.filter(u => u.role === 'cliente').length;
+      document.getElementById('psico-count').textContent = `(${psicoCount})`;
+      document.getElementById('cliente-count').textContent = `(${clienteCount})`;
+
+      if (filteredUsers.length === 0) {
+        container.innerHTML = '<div class="empty-state">No hay ' + (currentTab === 'psicologos' ? 'psicólogos' : 'clientes') + ' registrados</div>';
+        return;
+      }
+
+      container.innerHTML = filteredUsers.map(user => createUserCard(user)).join('');
+    }
+
+    function createUserCard(user) {
+      const avatar = getAvatar(user.name);
+      let statusBadge = '';
+      let actions = '';
+
+      if (currentTab === 'psicologos') {
+        if (user.status === 'pending') {
+          statusBadge = '<span class="user-status status-pending">⏳ Pendiente de aprobación</span>';
+          actions = `
+            <button class="user-action-btn btn-approve" onclick="approveUser('${user.id}')">Aprobar</button>
+            <button class="user-action-btn btn-reject" onclick="rejectUser('${user.id}')">Rechazar</button>
+          `;
+        } else if (user.verified) {
+          statusBadge = '<span class="user-status status-active">✓ Verificado</span>';
+          actions = '<button class="user-action-btn btn-view" onclick="viewUserDetails(\'' + user.id + '\')">Ver perfil</button>';
+        } else {
+          statusBadge = '<span class="user-status status-rejected">✗ Rechazado</span>';
+          actions = '<button class="user-action-btn btn-view" onclick="viewUserDetails(\'' + user.id + '\')">Ver perfil</button>';
+        }
+      } else {
+        statusBadge = '<span class="user-status status-active">✓ Activo</span>';
+        actions = '<button class="user-action-btn btn-view" onclick="viewUserDetails(\'' + user.id + '\')">Ver perfil</button>';
+      }
+
+      return `
+        <div class="user-card">
+          <div class="user-avatar">${avatar}</div>
+          <div class="user-name">${user.name || 'Sin nombre'}</div>
+          <div class="user-role">${currentTab === 'psicologos' ? '🧠 Psicólogo' : '💙 Cliente'}</div>
+          
+          <div class="user-info"><strong>Email:</strong> ${user.email || '—'}</div>
+          ${user.specialty ? '<div class="user-info"><strong>Especialidad:</strong> ' + user.specialty + '</div>' : ''}
+          ${user.experience ? '<div class="user-info"><strong>Experiencia:</strong> ' + user.experience + ' años</div>' : ''}
+          ${user.institution ? '<div class="user-info"><strong>Institución:</strong> ' + user.institution + '</div>' : ''}
+          
+          ${statusBadge}
+          
+          <div class="user-actions">
+            ${actions}
+          </div>
+        </div>
+      `;
+    }
+
+    function getAvatar(name) {
+      if (!name) return '👤';
+      return name.charAt(0).toUpperCase();
+    }
+
+    function approveUser(userId) {
+      const user = allUsers.find(u => u.id === userId);
+      if (!user) return;
+
+      user.verified = true;
+      user.status = 'active';
+      saveUsers();
+      alert('Psicólogo aprobado exitosamente');
+      renderUsers();
+    }
+
+    function rejectUser(userId) {
+      const reason = prompt('Ingresa la razón del rechazo (opcional):');
+      const user = allUsers.find(u => u.id === userId);
+      if (!user) return;
+
+      user.verified = false;
+      user.status = 'rejected';
+      user.rejectionReason = reason || 'Sin especificar';
+      saveUsers();
+      alert('Psicólogo rechazado');
+      renderUsers();
+    }
+
+    function viewUserDetails(userId) {
+      const user = allUsers.find(u => u.id === userId);
+      if (!user) return;
+
+      let details = `
+Nombre: ${user.name}
+Email: ${user.email}
+Rol: ${user.role === 'psicologos' ? 'Psicólogo' : 'Cliente'}
+      `;
+
+      if (user.role === 'psicologos') {
+        details += `
+Especialidad: ${user.specialty || '—'}
+Experiencia: ${user.experience || '—'} años
+Institución: ${user.institution || '—'}
+Certificado: ${user.certificate || '—'}
+Estado: ${user.status === 'pending' ? 'Pendiente' : user.verified ? 'Verificado' : 'Rechazado'}
+      `;
+      }
+
+      alert(details);
+    }
+
+    function saveUsers() {
+      localStorage.setItem('ame_users', JSON.stringify(allUsers));
+    }
+  </script>
+
+</body>
+</html>
